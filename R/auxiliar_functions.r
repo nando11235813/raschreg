@@ -232,7 +232,7 @@ update.rasch <- function(object, formula., ..., evaluate = TRUE) {
 }
 
 # loglik
-logLik.rasch< -function(object, ...){
+logLik.rasch <- function(object, ...){
   stopifnot(inherits(object, 'rasch'))
   return(object$loglik)
 }

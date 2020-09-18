@@ -191,8 +191,7 @@ pim <- function(mod, main = NULL){
 }
 
 # Forest plot}
-forest <- function(mod, level = 0.05,
-                   main_dif = NULL, main_disc = NULL, main_reg = NULL){
+forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_reg = NULL){
   stopifnot(inherits(mod, 'rasch'))
   s      <- summary(mod)
   graphs <- vector('list', 0)
