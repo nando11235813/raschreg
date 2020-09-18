@@ -1,0 +1,58 @@
+useDynLib(raschreg, .registration=TRUE)
+export(rasch)
+export(raschsk)
+export(raschd)
+export(raschreg)
+export(raschdreg)
+export(irt2p)
+export(irt2preg)
+export(sim_rasch)
+export(hessian)
+export(gradient)
+export(ability)
+export(itemfit)
+export(test)
+S3method(plot, rasch)
+export(info)
+export(pim)
+export(forest)
+export(rcs)
+S3method(predict,rcs)
+importFrom(Rcpp, evalCpp)
+importFrom(stats, nlminb,
+                  optimize,
+                  uniroot,
+                  reshape,
+                  update,
+                  qchisq,
+                  pt,
+                  rnorm,
+                  quantile, 
+                  predict,
+                  formula,
+                  update.formula,
+                  coef,
+                  qt,
+                  rbinom,
+                  pchisq,
+                  cov2cor,
+                  sd,
+                  model.frame,
+                  vcov,
+                  AIC,
+                  BIC,
+                  logLik,
+                  residuals)
+import(ggplot2)
+importFrom(cowplot, plot_grid)
+importFrom(rlang, .data)
+S3method(print, rasch)
+S3method(coef, rasch)
+S3method(AIC, rasch)
+S3method(BIC, rasch)
+S3method(logLik, rasch)
+S3method(summary, rasch)
+S3method(confint, rasch)
+S3method(anova, rasch)
+S3method(vcov,rasch)
+S3method(residuals,rasch)

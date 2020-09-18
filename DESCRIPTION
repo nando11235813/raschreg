@@ -1,0 +1,17 @@
+Package: raschreg
+Type: Package
+Title: Item Response Theory models including explanatory variables of the ability parameter
+Version: 1.0
+Date: 2020-03-16
+Author: person("Fernando", "Massa", email = "fmassa@iesta.edu.uy",
+  role = c("aut", "cre"), comment = c(ORCID='https://orcid.org/0000-0002-2922-4097'))
+Maintainer: Fernando Massa <fmassa@iesta.edu.uy>
+Description: Provides a set of functions to estimate, simulate and visualize Item Response Theroy models such as: Rasch model, Rasch model with a common discrimination parameter and the Two Parameter Logistic model). Inclusion of regression effects of the ability paramters are allowed. Marginal log-likelihood is approximated using the Laplace method.
+License: GPL (>= 2)
+Imports: cowplot, 
+         ggplot2, 
+         Rcpp,
+         Rdpack,
+         rlang
+RdMacros: Rdpack
+LinkingTo: Rcpp

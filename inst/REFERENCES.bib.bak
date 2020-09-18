@@ -1,0 +1,95 @@
+% Encoding: UTF-8
+
+@Article{rasch1960,
+  author  = {George Rasch},
+  journal = {Copenhagen: Paedagogiske Institute.},
+  title   = {Probabilistic Models for Some Intelligence and Attainment Tests},
+  year    = {1960},
+}
+
+@Book{baker2004,
+  author    = {Baker, Frank B. and Kim, Seock-Ho},
+  editor    = {New York: Marcel Dekker},
+  publisher = {CRC Press},
+  title     = {Item Response Theory},
+  year      = {2004},
+  isbn      = {978-0-8247-5825-7},
+}
+
+@Article{lewis2001,
+  author  = {Steff Lewis and Mike Clarke},
+  journal = {BMJ},
+  title   = {Forest plots: trying to see the wood and the trees},
+  year    = {2001},
+  issn    = {0959-8138},
+  number  = {7300},
+  pages   = {1479--1480},
+  volume  = {322},
+  doi     = {10.1136/bmj.322.7300.1479},
+}
+
+@Article{azevedo1994,
+  author  = {Adriano Azevedo-Filho and Ross D. Shachter},
+  journal = {Uncertainty in Artifficial Intelligence},
+  title   = {Laplace's method approximations for probabilistic inference in belief networks with continuous variables},
+  year    = {1994},
+  doi     = {https://doi.org/10.1016/B978-1-55860-332-5.50009-2},
+}
+
+@Article{durrelman1989,
+  author  = {Durrelman S. and Simon R.},
+  journal = {Statistics in Medicine},
+  title   = {Flexible regression-models with cubic-splines},
+  year    = {1989},
+  month   = may,
+  number  = {8},
+  pages   = {551-561},
+  volume  = {5},
+  doi     = {10.1002/sim.4780080504},
+}
+
+@Book{wilson2005,
+  author    = {Mark Wilson},
+  publisher = {Lawrence Erlbaum Associates},
+  title     = {Constructing Measures: an Item Response Modelling Approach},
+  year      = {2005},
+  isbn      = {0-8058-4785-5},
+}
+
+@Book{deboeck2004,
+  author    = {Paul De Boeck and Mark Wilson},
+  publisher = {Springer-Verlag New York},
+  title     = {Explanatory Item Response Models: A GeneralizedLinear and Nonlinear Approach.},
+  year      = {2004},
+  isbn      = {978-1-4419-2323-3},
+  doi       = {10.1007/978-1-4757-3990-9},
+}
+
+@Article{lord1980,
+  author  = {Lord, F. M.},
+  journal = {Psychometrika},
+  title   = {Unbiased estimators of ability parameters, of their variance, and of theirparallel-forms reliability},
+  year    = {1980},
+  pages   = {48},
+  volume  = {233-245},
+}
+
+@Article{lorenzo2020,
+  author  = {Lorenzo, Susana},
+  journal = {Odontoestomatolog\'ia},
+  title   = {Salud Bucal y enfermedades no transmisibles en pacientes de un centro de ense\~nanza universitaria, Montevideo, Uruguay},
+  year    = {2020},
+  comment = {In press},
+}
+
+@Article{azzalini2013,
+  author  = {Reinaldo B. Arellano-Valle and Adelchi Azzalini},
+  journal = {Journal of Multivariate Analysis},
+  title   = {The centred parameterization and related quantities of the skew-t distribution},
+  year    = {2013},
+  pages   = {73-90},
+  volume  = {113},
+  doi     = {https://doi.org/10.1016/j.jmva.2011.05.016},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
