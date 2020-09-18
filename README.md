@@ -16,5 +16,6 @@ All previous models allow the posibility to incorporate explanatory variables (e
 $\theta_i \sim N(X'\beta, 1)$
 ***
 ## Features
+h<sub>&theta;</sub>(x) = &theta;<sub>o</sub> x + &theta;<sub>1</sub>x
 ***
 ## Installation
