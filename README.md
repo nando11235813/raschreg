@@ -16,6 +16,6 @@ All previous models allow the posibility to incorporate explanatory variables (e
 $\theta_i \sim N(X'\beta, 1)$
 ***
 ## Features
-h<sub>&theta;</sub>(x) = &theta;<sub>o</sub> x + &theta;<sub>1</sub>x
+P(Y<sub>j<\sub>=1|&theta<\sub>i<\sub>) = logit(&alpha<sub>j<\sub>(&theta<sub>i<\sub> - &delta<sub>j<\sub>))
 ***
 ## Installation
