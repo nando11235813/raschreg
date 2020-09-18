@@ -1,6 +1,6 @@
 # raschreg
 
-The library _raschreg_ was created (an curently mantained) by a small team of statisticians from Universidad de la República, Uruguay. It's primary pourpose is to provide R users with a framework of item response theory (IRT) models allowing for the possibility to include regression effects for the person parameters.   
+The library _raschreg_ was created an mantained by a group of statisticians from Universidad de la República, Uruguay. It's primary pourpose is to provide R users with a framework for Item Response Theory (IRT) models, allowing for the possibility to include regression effects for the person parameters.   
 ***
 ## The models
 Having a set of _p_ items (Y<sub>1</sub>, Y<sub>2</sub>, ..., Y<sub>p</sub>) the probabilistic structure for the models is:   
@@ -11,7 +11,7 @@ Where &theta;<sub>i</sub>, &delta;<sub>j</sub> and &alpha;<sub>j</sub> represent
 _raschreg_ provides a set of functions to fit, analyse and plot IRT models intended to analyse binary items. Currently supported models are:   
 * Rasch model (&alpha;<sub>1</sub>=&alpha;<sub>2</sub>=...=&alpha;<sub>p</sub>=1)
 * Rasch model with free discrimination parameter (&alpha;<sub>1</sub>=&alpha;<sub>2</sub>=...=&alpha;<sub>p</sub>)
-* Two parameter logistic model
+* Two parameter logistic model   
 All previous models allow the posibility to incorporate explanatory variables (either qualitative or quantitative) for person parameters. This is:   
 &theta;<sub>i</sub> ~ N(X'&beta;, 1)   
 Finally, the comply with different model constraints, _raschreg_ allow the posibility to restrict difficulty parameters so that:  &delta;<sub>1</sub>+...+ &delta;<sub>p</sub>=0
