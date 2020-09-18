@@ -4,10 +4,9 @@ The library _raschreg_ was created (an curently mantained) by a small team of st
 ***
 ## The models
 Probabilistic structure for the models is:   
-<p align="center">
-   P(Y<sub>j</sub>=1|&theta;<sub>i</sub>) = logit(&alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>))   
-   &theta;<sub>i</sub> ~ N(0, 1)   
-</p>
+<center>P(Y<sub>j</sub>=1|&theta;<sub>i</sub>) = logit(&alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>))</center>   
+<center>&theta;<sub>i</sub> ~ N(0, 1)</center>   
+
 Where &theta;<sub>i</sub>, &delta;<sub>j</sub> and &alpha;<sub>j</sub> represent person, difficulty and discrimination parameters respectively.
 ***
 _raschreg_ provides a set of functions to fit, analyse and plot IRT models intended to analyse binary items. Currnet supported models are:   
@@ -15,9 +14,8 @@ _raschreg_ provides a set of functions to fit, analyse and plot IRT models inten
 * Rasch model with free discrimination parameter (common to all items)
 * Two parameter logistic model
 All previous models allow the posibility to incorporate explanatory variables (either qualitative or quantitative) for person parameters. This is:   
-<p align="center">
-   &theta;<sub>i</sub> ~ N(X'&beta;, 1)
-</p>
+<center>&theta;<sub>i</sub> ~ N(X'&beta;, 1)</center>   
+
 ***
 ## Features
 1. Models are by maximum marginal likelihood, estimated integrating person parameters via Laplace approximation. Estimated models ar stored in _rasch_ objects similar to _lm_ or _glm_ objects.   
