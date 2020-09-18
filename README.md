@@ -4,8 +4,8 @@ The library _raschreg_ was created (an curently mantained) by a small team of st
 ***
 ## The models
 Probabilistic structure for the models is:
-$P(Y_j = 1|\theta_i) = \logit(\alpha_j(\theta_i - \delta_j))$
-$\theta_i \sim N(0, 1)$
+P(Y<sub>j</sub>=1|&theta;<sub>i</sub>) = logit(&alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>))
+$&theta;<sub>i</sub> ~ N(0, 1)$
 Where $\theta_i$, $\delta_j$ and $\alpha_j$ represent person, difficulty and discrimination parameters respectively.
 ***
 _raschreg_ provides a set of functions to fit, analyse and plot IRT models intended to analyse binary items. Currnet supported models are:   
@@ -16,6 +16,6 @@ All previous models allow the posibility to incorporate explanatory variables (e
 $\theta_i \sim N(X'\beta, 1)$
 ***
 ## Features
-P(Y<sub>j</sub>=1|&theta<\sub>i</sub>) = logit(&alpha<sub>j</sub>(&theta<sub>i</sub> - &delta<sub>j</sub>))
+
 ***
 ## Installation
