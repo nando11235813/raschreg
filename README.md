@@ -13,19 +13,21 @@ _raschreg_ provides a set of functions to fit, analyse and plot IRT models inten
 * Rasch model with free discrimination parameter (&alpha;<sub>1</sub>=&alpha;<sub>2</sub>=...=&alpha;<sub>p</sub>)
 * Two parameter logistic model   
 
-All previous models allow the posibility to incorporate explanatory variables (either qualitative or quantitative) for person parameters. This is:   
+All previous models allow the posibility to incorporate explanatory variables (qualitative or quantitative) for person parameters.   
+In this case:   
 &theta;<sub>i</sub> ~ N(X'&beta;, 1)   
-Finally, the comply with different model constraints, _raschreg_ allow the posibility to restrict difficulty parameters so that:  &delta;<sub>1</sub>+...+ &delta;<sub>p</sub>=0
+
+Moreover, adding different model constraints, _raschreg_ allow the posibility to restrict difficulty parameters by: &delta;<sub>1</sub>+...+ &delta;<sub>p</sub>=0
 ***
 ## Features
-1. Models are by maximum marginal likelihood, estimated integrating person parameters via Laplace approximation. Estimated models ar stored in _rasch_ objects similar to _lm_ or _glm_ objects.   
-2. Usual R mehods for (generalized) linear models are implemented, these include:   
+1. Models are estimated by maximum marginal likelihood, integrating person parameters via Laplace approximation. Estimated models are stored in _rasch_ objects similarly to _lm_ or _glm_ objects.   
+2. Usual R methods for linear models (lm, glm) are implemented, such as:   
     * coef
     * summary
     * plot
     * anova
     * update
-    * and more
+    * among others
 3. Stored _rasch_ objects con be visualized using:
     * Item characteristic curves and information curves
     * Person item maps
