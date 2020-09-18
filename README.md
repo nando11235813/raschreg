@@ -35,5 +35,7 @@ Moreover, adding different model constraints, _raschreg_ allow the posibility to
 ***
 ## Installation
 You can install the development version from GitHub using library [remotes](https://cran.r-project.org/web/packages/remotes/index.html):   
+```{r }
 library(remotes)   
 install_github("nando11235813/raschreg", ref = "main")
+```
