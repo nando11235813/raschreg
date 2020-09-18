@@ -12,6 +12,7 @@ _raschreg_ provides a set of functions to fit, analyse and plot IRT models inten
 * Rasch model (&alpha;<sub>1</sub>=&alpha;<sub>2</sub>=...=&alpha;<sub>p</sub>=1)
 * Rasch model with free discrimination parameter (&alpha;<sub>1</sub>=&alpha;<sub>2</sub>=...=&alpha;<sub>p</sub>)
 * Two parameter logistic model   
+
 All previous models allow the posibility to incorporate explanatory variables (either qualitative or quantitative) for person parameters. This is:   
 &theta;<sub>i</sub> ~ N(X'&beta;, 1)   
 Finally, the comply with different model constraints, _raschreg_ allow the posibility to restrict difficulty parameters so that:  &delta;<sub>1</sub>+...+ &delta;<sub>p</sub>=0
