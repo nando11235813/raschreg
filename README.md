@@ -24,7 +24,7 @@ Moreover, adding different model constraints, _raschreg_ allow the posibility to
 2. Usual R methods for linear models (lm, glm) are implemented, such as:   
     * coef
     * summary
-    * plot
+    * vcov
     * anova
     * update
     * among others
