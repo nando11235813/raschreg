@@ -34,6 +34,6 @@ Moreover, adding different model constraints, _raschreg_ allow the posibility to
     * Forest plots
 ***
 ## Installation
-You can install the development version from GitHub using library remotes:
-library(remotes)
+You can install the development version from GitHub using library remotes:   
+library(remotes)   
 install_github("nando11235813/raschreg", ref = "main")
