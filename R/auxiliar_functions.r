@@ -531,7 +531,7 @@ profile <- function(mod, alpha = 0.05){
   fzero <- function(h){
     initL   <- init
     fixL    <- rep(NA, npar)
-    fixL[i] <- initL[i] <- initL[i] + h
+    fixL[i] <- initL[i] <- initL[i]*h
     par <- nlminb(start     = initL,
                   objective = get(flik),
                   X         = items,
@@ -550,9 +550,9 @@ profile <- function(mod, alpha = 0.05){
   cat('Profiling the likelihood ...','\n')
   for (i in free){
     # left side
-    CI[i,1] <- init[i] + uniroot(fzero, interval = c(-5, 0))$root
+    CI[i,1] <- init[i] * uniroot(fzero, interval = c(0.01, 1))$root
     # right side
-    CI[i,2] <- init[i] + uniroot(fzero, interval = c(0, 5))$root
+    CI[i,2] <- init[i] * uniroot(fzero, interval = c(1, 100))$root
     print(names(init)[i])
   }
   
