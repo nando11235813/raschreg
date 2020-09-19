@@ -18,7 +18,7 @@ irt2p(items, init = NULL, fixed = NULL)
     Optional numeric vector of initial values at which initialize numerical optimization (length 2*J).
   }
   \item{fixed}{
-    Optional numeric vector (length J). If supplied, only NA entries in fixed will be estimated. 
+    Optional numeric vector (length 2*J). If supplied, only NA entries in fixed will be estimated. 
   }
 }
 \details{

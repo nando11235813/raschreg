@@ -86,12 +86,8 @@ summary.rasch <- function(object, correlation = FALSE, signif.stars = getOption(
     cat('\n')
     cat('Discrimination parameters','\n')
     a  <- round(object$coef[which(pnames == 'alpha'),],3)
-    if(any(a[, 4] <= 0.001)) a[a[, 4] == 0,4]<-'<0.001'
-    ss <- ifelse(a[,4]>0.1, '', 
-                 ifelse(a[, 4] > 0.05, '.', 
-                        ifelse(a[, 4] > 0.01, '*', 
-                               ifelse(a[, 4] > 0.001, '**', 
-                                      '***'))))
+    if(any(a[, 4] <= 0.001, na.rm = TRUE)) a[a[, 4] == 0,4]<-'<0.001'
+    ss <- sstars(a[,4])
     names(a) <- c('Estimate',
                   'Std. Error',
                   't value',
@@ -107,12 +103,8 @@ summary.rasch <- function(object, correlation = FALSE, signif.stars = getOption(
   cat('\n')
   cat('Difficulty parameters','\n')
   s  <- round(object$coef, 3)
-  if(any(s[,4] <= 0.001)) s[which(s[,4] <= 0.001), 4] <- '<0.001'
-  ss <- ifelse(s[, 4] > 0.1, '',
-               ifelse(s[, 4] > 0.05, '.',
-                      ifelse(s[, 4] > 0.01, '*',
-                             ifelse(s[, 4] > 0.001, '**',
-                                    '***'))))
+  if(any(s[,4] <= 0.001, na.rm = TRUE)) s[which(s[,4] <= 0.001), 4] <- '<0.001'
+  ss <- sstars(s[, 4])
   names(s) <- c('Estimate',
                 'Std. Error',
                 't value',
@@ -130,12 +122,8 @@ summary.rasch <- function(object, correlation = FALSE, signif.stars = getOption(
     cat('___', '\n')
     cat('Regression parameters', '\n')
     s2 <- round(object$beta, 3)
-    if(any(s2[, 4] <= 0.001)) s2[s2[, 4] == 0,4] <- '<0.001'
-    ss <- ifelse(s2[, 4] > 0.1,'',
-                 ifelse(s2[, 4] > 0.05, '.',
-                        ifelse(s2[, 4] > 0.01, '*',
-                               ifelse(s2[, 4] > 0.001, '**',
-                                      '***'))))
+    if(any(s2[, 4] <= 0.001, na.rm = TRUE)) s2[s2[, 4] == 0,4] <- '<0.001'
+    ss <- sstars(s2[, 4])
     names(s2)<-c('Estimate',
                  'Std. Error',
                  't value',
@@ -641,4 +629,14 @@ test <- function(mod, restr){
   }
   print(format(test, digits = 4))
   return(test)
+}
+
+# signification stars
+sstars <- function(pv){
+  ss <- ifelse(pv > 0.1, '',
+               ifelse(pv > 0.05, '.',
+                      ifelse(pv > 0.01, '*',
+                             ifelse(pv > 0.001, '**','***'))))
+  if(any(is.na(ss))) ss[which(is.na(ss))]<-''
+  return(ss)
 }
