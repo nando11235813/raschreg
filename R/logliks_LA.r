@@ -76,7 +76,7 @@ raschdlikLA <- function(par, X, fixed = NULL){
 }
 
 # Two Parameter Logistic Model
-irt2plikLA <- function(par, X){
+irt2plikLA <- function(par, X, fixed = NULL){
 
   J     <- ncol(X)
   delta <- par[seq(J)]
@@ -88,6 +88,12 @@ irt2plikLA <- function(par, X){
                 as.data.frame(table(pat)),
                 by   = 'pat',
                 sort = FALSE)$Freq
+  # constraints
+  if (!is.null(fixed)){
+    if (length(fixed) != (2*J)) stop("Wrong length in 'fixed'")
+    fix_d <- which(!is.na(fixed))
+    par[fix_d] <- fixed[fix_d]
+  }
   
   # maximum on each X row
   bmax <- apply(X, 1,

@@ -57,7 +57,6 @@ rasch <- function(items, init = NULL, fixed = NULL){
 	iter   <- par$iterations
 	dof    <- nrow(items) - length(par$par)
 	deltas <- par$par
-	if(stz) deltas[J] <- -sum(deltas)
 	delta  <- data.frame(deltas,
 	                     se,
 	                     deltas/se,
@@ -154,7 +153,7 @@ raschd <- function(items, init = NULL, stz = FALSE, fixed = NULL){
 }
 
 # Two parameter logistic Model
-irt2p <- function(items, init = NULL){
+irt2p <- function(items, init = NULL, fixed = NULL){
   if ('data.frame' %in% class(items)) data <- as.matrix(items)
   # initial values
   J  <- ncol(items)
@@ -172,14 +171,34 @@ irt2p <- function(items, init = NULL){
                 X       = items,
                 lower   = lo,
                 control = list(rel.tol = 1e-5,
-                             x.tol     = 1e-5))
+                             x.tol     = 1e-5),
+                fixed     = fixed)
  
   # approximate observed information matrix
   H <- hessian(fun   = irt2plikLA,
                param = par$par,
                X     = items,
-               fun0  = par$value)
+               fun0  = par$value,
+               fixed = fixed)
+  if (!is.null(fixed)){
+	  fix_d <- which(!is.na(fixed))
+	  H <- H[-fix_d, -fix_d]
+	}
   V  <- solve(H)
+  
+  # constraints
+	unc <- 1:(2*J)
+	if (!is.null(fixed)){
+	  unc[which(!is.na(fixed))] <- NA
+	}
+	if (any(is.na(unc))){
+	  unc <- unc[!is.na(unc)]
+	  V1 <- matrix(NA, 2*J, 2*J)
+	  V1[unc, unc] <- V
+	  V <- V1
+	  rm(V1)
+	}
+	
   rownames(V) <- colnames(V) <- paste(rep(c('delta' , 'alpha'), each = J), colnames(items), sep = '_')
   se <- sqrt(diag(V))
 
