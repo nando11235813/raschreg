@@ -7,7 +7,7 @@
   Estimate Rasch model, including a common discrimination parameter for all items, approximating the marginal log-likelihood using Laplace approximation.
 }
 \usage{
-  raschd(items, init = NULL, stz = FALSE, fixed = NULL)
+  raschd(items, init = NULL, fixed = NULL)
 }
 
 \arguments{
@@ -16,9 +16,6 @@
   }
   \item{init}{
     Optional numeric vector of initial values at which initialize numerical optimization (length J+1).
-  }
-  \item{stz}{
-    logical. If \emph{TRUE}, sum to zero constraints are imposed on difficulty parameters.
   }
   \item{fixed}{
     Optional numeric vector (length J). If supplied, only NA entries in fixed will be estimated. 
@@ -55,5 +52,4 @@ n   <- 100
 J   <- 7
 X   <- sim_rasch(n, J, alpha = rep(1.4, length = J))
 mod <- raschd(X)
-mod_stz <- raschd(X, stz = TRUE)
 }

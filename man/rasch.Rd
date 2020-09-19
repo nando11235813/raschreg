@@ -7,7 +7,7 @@ Fitting Rasch model
 Estimate Rasch model approximating the marginal log-likelihood using Laplace approximation.
 }
 \usage{
-rasch(items, init = NULL, stz =FALSE, fixed = NULL)
+rasch(items, init = NULL, fixed = NULL)
 }
 
 \arguments{
@@ -16,9 +16,6 @@ rasch(items, init = NULL, stz =FALSE, fixed = NULL)
   }
   \item{init}{
     Optional numeric vector of initial values at which initialize numerical optimization (length J).
-  }
-  \item{stz}{
-    logical. If \emph{TRUE}, sum to zero constraints are imposed on difficulty parameters.
   }
   \item{fixed}{
     Optional numeric vector (length J). If supplied, only NA entries in fixed will be estimated. 
@@ -55,5 +52,4 @@ n   <- 100
 J   <- 7
 X   <- sim_rasch(n,J)
 mod <- rasch(X)
-mod_stz <- rasch(X, stz = TRUE)
 }

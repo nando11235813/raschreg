@@ -3,7 +3,7 @@
 ##########
 
 # Rasch Model
-rasch <- function(items, init = NULL, stz = FALSE, fixed = NULL){
+rasch <- function(items, init = NULL, fixed = NULL){
 
   if ('data.frame' %in% class(items)) items <- as.matrix(items)
   # initial values
@@ -21,7 +21,6 @@ rasch <- function(items, init = NULL, stz = FALSE, fixed = NULL){
                 X         = items,
                 control   = list(rel.tol = 1e-5,
                                  x.tol   = 1e-5),
-                stz       = stz,
                 fixed     = fixed)
   
  	# approximate observed information matrix
@@ -29,21 +28,18 @@ rasch <- function(items, init = NULL, stz = FALSE, fixed = NULL){
 	             param = par$par,
 	             X     = items,
 	             fun0  = par$objective,
-	             stz   = stz,
 	             fixed = fixed)
-	if (stz) H <- H[-J,-J]
 	if (!is.null(fixed)){
 	  fix_d <- which(!is.na(fixed))
 	  H <- H[-fix_d, -fix_d]
 	}
 	V  <- solve(H)
 
-		# constraints
+	# constraints
 	unc <- 1:J
 	if (!is.null(fixed)){
 	  unc[which(!is.na(fixed))] <- NA
 	}
-	if (stz) unc[J] <- NA
 	if (any(is.na(unc))){
 	  unc <- unc[!is.na(unc)]
 	  V1 <- matrix(NA, J, J)
@@ -59,7 +55,7 @@ rasch <- function(items, init = NULL, stz = FALSE, fixed = NULL){
 	
 	loglik <- par$objective
 	iter   <- par$iterations
-	dof    <- nrow(items) - length(par$par) + stz
+	dof    <- nrow(items) - length(par$par)
 	deltas <- par$par
 	if(stz) deltas[J] <- -sum(deltas)
 	delta  <- data.frame(deltas,
@@ -103,7 +99,6 @@ raschd <- function(items, init = NULL, stz = FALSE, fixed = NULL){
                 lower     = lo,
                 control   = list(rel.tol = 1e-5,
                                  x.tol   = 1e-5),
-                stz       = stz,
                 fixed     = fixed)
   
   # approximate observed information matrix
@@ -111,10 +106,8 @@ raschd <- function(items, init = NULL, stz = FALSE, fixed = NULL){
                param = par$par,
                X     = items,
                fun0  = par$objective,
-               stz   = stz,
                fixed = fixed)
 
-  if (stz) H <- H[-J, -J]
 	if (!is.null(fixed)){
 	  fix_d <- which(!is.na(fixed))
 	  H <- H[-fix_d, -fix_d]
@@ -126,7 +119,6 @@ raschd <- function(items, init = NULL, stz = FALSE, fixed = NULL){
 	if (!is.null(fixed)){
 	  unc[which(!is.na(fixed))] <- NA
 	}
-	if (stz) unc[J] <- NA
 	if (any(is.na(unc))){
 	  unc <- unc[!is.na(unc)]
 	  V1 <- matrix(NA, J +1, J + 1)
@@ -140,8 +132,7 @@ raschd <- function(items, init = NULL, stz = FALSE, fixed = NULL){
   
   loglik <- par$objective
   iter   <- par$iterations
-  dof    <- nrow(items) - length(par$par) + stz
-	if(stz) par$par[J] <- -sum(par$par[1:(J - 1)])
+  dof    <- nrow(items) - length(par$par)
   delta  <- data.frame(par$par,
                        se,
                        (par$par - init)/se,

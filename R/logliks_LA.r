@@ -5,7 +5,7 @@
 ####################################
 
 # Rasch Model
-raschlikLA <- function(par, X, stz, fixed = NULL){
+raschlikLA <- function(par, X, fixed = NULL){
   J   <- ncol(X)
   pat <- X %*% 10^seq(0, J - 1)
   X   <- X[which(!duplicated(pat)), ,drop=FALSE]
@@ -18,10 +18,8 @@ raschlikLA <- function(par, X, stz, fixed = NULL){
   if (!is.null(fixed)){
     if (length(fixed) != J) stop("Wrong length in 'fixed'")
     fix_d <- which(!is.na(fixed))
-    if (J %in% fix_d & stz) stop("Can't fix the 'sum to zero' parameter")
     par[fix_d] <- fixed[fix_d]
   }
-  if (stz) par[J] <- -sum(par[-J])
     
 	# maximum  on each row
 	bmax <- apply(X, 1,
@@ -42,7 +40,7 @@ raschlikLA <- function(par, X, stz, fixed = NULL){
 }
 
 # Rasch Model w/discrimination parameter
-raschdlikLA <- function(par, X, stz, fixed = NULL){
+raschdlikLA <- function(par, X, fixed = NULL){
   J     <- ncol(X)
   pat   <- X %*% 10^seq(0, J - 1)
   X     <- X[which(!duplicated(pat)), ,drop=FALSE]
@@ -57,10 +55,8 @@ raschdlikLA <- function(par, X, stz, fixed = NULL){
   if (!is.null(fixed)){
     if (length(fixed) != (J + 1)) stop("Wrong length in 'fixed'")
     fix_d <- which(!is.na(fixed))
-    if (J %in% fix_d & stz) stop("Can't fix the 'sum to zero' parameter")
     delta[fix_d] <- fixed[fix_d]
   }
-  if (stz) delta[J] <- -sum(delta[-J])
   
   # maximum on each row of X
   bmax <- apply(X, 1,

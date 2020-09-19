@@ -7,7 +7,7 @@
 Approximation of the marginal log-likelihood of the Rasch model (with a common discrimination parameter for all items) using the Laplace approximation.
 }
 \usage{
-  raschdlikLA(par, X, stz, fixed = NULL)
+  raschdlikLA(par, X, fixed = NULL)
 }
 
 \arguments{
@@ -16,9 +16,6 @@ Approximation of the marginal log-likelihood of the Rasch model (with a common d
   }
   \item{X}{
     Item matrix (J columns) containing only zeroes and ones.
-  }
-  \item{stz}{
-    logical. If \emph{TRUE}, sum to zero constraints are imposed on difficulty parameters.
   }
   \item{fixed}{
     Optional numeric vector (length J). If supplied, only NA entries in fixed will be estimated. 

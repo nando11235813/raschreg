@@ -531,7 +531,6 @@ profile <- function(mod, alpha = 0.05){
   L0   <- mod$loglik - qchisq(1 - alpha/2, 1)/2
   
   items <- mod$items
-  stz   <- abs(sum(est$est.d)) < 1e-7
   npar  <- length(init)
   CI    <- matrix(0, ncol = 2, nrow = npar)
   
@@ -548,7 +547,6 @@ profile <- function(mod, alpha = 0.05){
                   X         = items,
                   control   = list(rel.tol = 1e-5,
                                    x.tol   = 1e-5),
-                  stz       = stz,
                   fixed     = fixL)
     -par$objective - L0
   }
@@ -604,12 +602,10 @@ test <- function(mod, restr){
   score <- gradient(fun   = get(flik),
                     param = paramr,
 	                  X     = mod$items,
-	                  stz   = FALSE,
 	                  fixed = restr*NA)
   hess  <-  hessian(fun   = get(flik),
                     param = paramr,
 	                  X     = mod$items,
-	                  stz   = FALSE,
 	                  fixed = restr*NA)
   # degrees of freedom
   dof <- sum(!is.na(restr))
