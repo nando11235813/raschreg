@@ -78,10 +78,6 @@ raschdlikLA <- function(par, X, fixed = NULL){
 # Two Parameter Logistic Model
 irt2plikLA <- function(par, X, fixed = NULL){
 
-  J     <- ncol(X)
-  delta <- par[seq(J)]
-  alpha <- par[-seq(J)]
-
   pat   <- apply(X, 1, paste, collapse = '')
   X     <- X[which(!duplicated(pat)), ,drop=FALSE]
   np    <- merge(data.frame(pat = unique(pat)),
@@ -95,6 +91,10 @@ irt2plikLA <- function(par, X, fixed = NULL){
     par[fix_d] <- fixed[fix_d]
   }
   
+  J     <- ncol(X)
+  delta <- par[seq(J)]
+  alpha <- par[-seq(J)]
+
   # maximum on each X row
   bmax <- apply(X, 1,
                 function(rowi) optimize(hbc,

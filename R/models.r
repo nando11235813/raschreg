@@ -79,7 +79,7 @@ rasch <- function(items, init = NULL, fixed = NULL){
 }
 
 # Rasch Model w/discrimination parameter
-raschd <- function(items, init = NULL, stz = FALSE, fixed = NULL){
+raschd <- function(items, init = NULL, fixed = NULL){
   if ('data.frame' %in% class(items)) items <- as.matrix(items)
   # initial values
   J  <- ncol(items)

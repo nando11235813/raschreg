@@ -7,7 +7,7 @@ Fitting Two Parameter Logistic Model
 Estimate the two parameter logistic model approximating the marginal log-likelihood using Laplace approximation.
 }
 \usage{
-irt2p(items, init = NULL)
+irt2p(items, init = NULL, fixed = NULL)
 }
 
 \arguments{
@@ -16,6 +16,9 @@ irt2p(items, init = NULL)
   }
   \item{init}{
     Optional numeric vector of initial values at which initialize numerical optimization (length 2*J).
+  }
+  \item{fixed}{
+    Optional numeric vector (length J). If supplied, only NA entries in fixed will be estimated. 
   }
 }
 \details{
