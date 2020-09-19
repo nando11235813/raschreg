@@ -452,8 +452,10 @@ anova.rasch<-function(object, ..., ref = 1){
   
   coefs <- lapply(models,
                   function(x) rbind(x$coef,x$beta))
+  # number of free parameters
+  nfp   <- function(x) sum(!is.na(x))
   npars <- unlist(lapply(coefs,
-                         function(x) nrow(x)))
+                         function(x) nfp(x[,2])))
   lliks <- unlist(lapply(models,
                          function(x) logLik(x)))
   # Likelihood ratio test
