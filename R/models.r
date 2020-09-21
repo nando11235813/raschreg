@@ -83,8 +83,7 @@ raschd <- function(items, init = NULL, fixed = NULL){
   if ('data.frame' %in% class(items)) items <- as.matrix(items)
   # initial values
   J  <- ncol(items)
-  if (is.null(init)) init <- c(rep(0, J), 1)
-  lo <- c(rep(-Inf, 7), 0)
+  if (is.null(init)) init <- rep(0, J +1)
   
   # NA checking
   if(any(is.na(items))) {
@@ -95,7 +94,6 @@ raschd <- function(items, init = NULL, fixed = NULL){
   par <- nlminb(start     = init,
                 objective = raschdlikLA,
                 X         = items,
-                lower     = lo,
                 control   = list(rel.tol = 1e-5,
                                  x.tol   = 1e-5),
                 fixed     = fixed)
@@ -125,17 +123,23 @@ raschd <- function(items, init = NULL, fixed = NULL){
 	  V <- V1
 	  rm(V1)
 	}
+	# delta method covariances
+	h <- c(rep(1, J), exp(par$par[J +1]))
+	V <- outer(h, h)*V
   
   rownames(V) <- colnames(V) <- c(colnames(items), 'alpha')
   se <- sqrt(diag(V))
+  # correcting discrimination parameter
+  par$par[J + 1] <- exp(par$par[J + 1])
   
   loglik <- par$objective
   iter   <- par$iterations
   dof    <- nrow(items) - length(par$par)
+  parH0  <- rep(c(0, 1), c(J, 1))
   delta  <- data.frame(par$par,
                        se,
-                       (par$par - init)/se,
-                       2*(1 - pt(abs((par$par - init)/se), dof)))
+                       (par$par - parH0)/se,
+                       2*(1 - pt(abs((par$par - parH0)/se), dof)))
   rownames(delta) <- c(paste('delta', colnames(items), sep = '_'), 'alpha')
   colnames(delta) <- c('Estimate',
                        'Std. Error',
@@ -157,9 +161,8 @@ irt2p <- function(items, init = NULL, fixed = NULL){
   if ('data.frame' %in% class(items)) data <- as.matrix(items)
   # initial values
   J  <- ncol(items)
-  if (is.null(init)) init <- rep(c(0, 1), each = J)
-  lo <- rep(c(-Inf, 0), each = J)
-  
+  if (is.null(init)) init <- rep(0, 2*J)
+
   # NA checking
   if(any(is.na(items))) {
     na    <- apply(is.na(items), 1, sum)
@@ -169,7 +172,6 @@ irt2p <- function(items, init = NULL, fixed = NULL){
   par <- nlminb(init,
                 irt2plikLA,
                 X       = items,
-                lower   = lo,
                 control = list(rel.tol = 1e-5,
                              x.tol     = 1e-5),
                 fixed     = fixed)
@@ -184,8 +186,8 @@ irt2p <- function(items, init = NULL, fixed = NULL){
 	  fix_d <- which(!is.na(fixed))
 	  H <- H[-fix_d, -fix_d]
 	}
-  V  <- solve(H)
-  
+  V <- solve(H)
+	
   # constraints
 	unc <- 1:(2*J)
 	if (!is.null(fixed)){
@@ -199,16 +201,24 @@ irt2p <- function(items, init = NULL, fixed = NULL){
 	  rm(V1)
 	}
 	
+	# delta method covariances
+	a_p <- (J+1):(2*J)
+ 	h   <- c(rep(1, J), exp(par$par[a_p]))
+	V   <- outer(h, h)*V
+	
   rownames(V) <- colnames(V) <- paste(rep(c('delta' , 'alpha'), each = J), colnames(items), sep = '_')
   se <- sqrt(diag(V))
+  # correcting discrimination parameters
+  par$par[a_p] <- exp(par$par[a_p])
 
   loglik <- par$objective
   iter   <- par$iterations
   dof    <- nrow(items) - length(par$par)
+  parH0  <- rep(c(0, 1), each = J)
   delta  <- data.frame(par$par,
                        se,
-                       (par$par - init)/se,
-                       2*(1 - pt(abs((par$par - init)/se),df = dof)))
+                       (par$par - parH0)/se,
+                       2*(1 - pt(abs((par$par - parH0)/se),df = dof)))
   colnames(delta) <- c('Estimate',
                        'Std. Error',
                        't value',

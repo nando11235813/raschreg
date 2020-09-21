@@ -26,6 +26,7 @@
 }
 \details{
 Returns information regarding each parameter type in the model and additionally gives 'significance stars' if signif.stars is TRUE. Correlations are printed to two decimal places. To see the actual correlations print summary(object)$correlation directly.
+Difficulties are compared to 0 and discrimination parameters are compared to 1. Since discrimination parameters are estimated on logarithmic scale, the delta method is used to estimated it's variences.
 }
 \value{
 The function summary.rasch computes and returns a list of summary statistics of the fitted  model given in \code{object}.

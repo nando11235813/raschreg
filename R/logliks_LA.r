@@ -49,7 +49,7 @@ raschdlikLA <- function(par, X, fixed = NULL){
                  by = 'pat',
                  sort = FALSE)$Freq
   delta <- par[1:J]
-  alpha <- rep(par[J + 1], J)
+  alpha <- exp(rep(par[J + 1], J))
 
   # constraints
   if (!is.null(fixed)){
@@ -93,7 +93,7 @@ irt2plikLA <- function(par, X, fixed = NULL){
   
   J     <- ncol(X)
   delta <- par[seq(J)]
-  alpha <- par[-seq(J)]
+  alpha <- exp(par[-seq(J)])
 
   # maximum on each X row
   bmax <- apply(X, 1,
