@@ -2,32 +2,24 @@
 \alias{raschreg-package}
 \docType{package}
 \title{
-  A short title line describing what the package does
+  Item Response Theory regression models.
 }
 \description{
-  A more detailed description of what the package does. A length
-  of about one to five lines is recommended.
-}
-\details{
-  This section should provide a more detailed overview of how to use the
-  package, including the most important functions.
+  Provides a set of functions to estimate, simulate and visualize Item Response Theroy models such as: Rasch model, Rasch model with a common discrimination parameter and the Two Parameter Logistic model). Inclusion of regression effects of the ability paramters are allowed. Marginal log-likelihood is approximated using the Laplace method.
 }
 \author{
-Your Name, email optional.
+Maintainer: Fernando Massa <fmassa@iesta.edu.uy>
+}
 
-Maintainer: Your Name <your@email.com>
-}
-\references{
-  This optional section can contain literature or other references for
-  background information.
-}
 \keyword{ package }
-\seealso{
-  Optional links to other man pages
-}
+
 \examples{
   \dontrun{
-     ## Optional simple examples of the most important functions
-     ## These can be in \dontrun{} and \donttest{} blocks.   
+     library(raschreg)
+     data(odont_ncd)
+     items <- odont_ncd[,c('pocket', 'loa', 'decay', 'f_dentition')]
+     mod <- raschreg(items, ~ age + sex_f, odont_ncd)
+     summary(mod)
+     forest(mod)
   }
 }
