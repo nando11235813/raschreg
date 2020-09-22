@@ -34,7 +34,7 @@ Moreover, adding different model constraints, _raschreg_ allow the posibility to
     * Forest plots
 ***
 ## Installation
-You can install the development version from GitHub using library [remotes](https://cran.r-project.org/web/packages/remotes/index.html):   
+You can install the development version from GitHub using library [devtools](https://CRAN.R-project.org/package=devtools):   
 ```{r }
 devtools::install_github("nando11235813/raschreg")
 ```
