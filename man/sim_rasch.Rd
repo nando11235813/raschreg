@@ -43,7 +43,7 @@ If difficulty parameters are not specified, they assume values in the interval f
 }
 
 \author{
-Fernando Massa, \email{fmassa@@iesta.edu.uy}
+Fernando Massa, \email{fmassa@iesta.edu.uy}
 }
 
 \seealso{
