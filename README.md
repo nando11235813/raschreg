@@ -4,7 +4,7 @@ The library _raschreg_ was created an mantained by a group of statisticians from
 ***
 ## The models
 Having a set of _p_ items (Y<sub>1</sub>, Y<sub>2</sub>, ..., Y<sub>p</sub>) the probabilistic structure for the models is:   
-P(Y<sub>j</sub>=1|&theta;<sub>i</sub>) = logit(&alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>))   
+logit(P(Y<sub>j</sub>=1|&theta;<sub>i</sub>)) = &alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>)   
 &theta;<sub>i</sub> ~ N(0, 1)   
 Where &theta;<sub>i</sub>, &delta;<sub>j</sub> and &alpha;<sub>j</sub> represent person, difficulty and discrimination parameters respectively.
 
