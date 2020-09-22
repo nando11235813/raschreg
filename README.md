@@ -16,8 +16,6 @@ _raschreg_ provides a set of functions to fit, analyse and plot IRT models inten
 All previous models allow the posibility to incorporate explanatory variables (qualitative or quantitative) for person parameters.   
 In this case:   
 &theta;<sub>i</sub> ~ N(X'&beta;, 1)   
-
-Moreover, adding different model constraints, _raschreg_ allow the posibility to restrict difficulty parameters by: &delta;<sub>1</sub>+...+ &delta;<sub>p</sub>=0
 ***
 ## Features
 1. Models are estimated by maximum marginal likelihood, integrating person parameters via Laplace approximation. Estimated models are stored in _rasch_ objects similarly to _lm_ or _glm_ objects.   
