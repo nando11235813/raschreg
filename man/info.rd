@@ -8,14 +8,11 @@
   The function \code{info} computes (and by default plots) the test information function from a fitted Rasch (regression) model.
 }
 \usage{
-  info(mod, plot = TRUE, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which = 'both')
+  info(mod, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which = 'both')
 }
 \arguments{
   \item{mod}{
     Fitted Rasch (regression) model whose information curve is to be ploted.
-  }
-  \item{plot}{
-    logical; if \code{plo t= TRUE} (the default) te information curve is plotted.
   }
   \item{theta}{
     numeric; values of ability at which informatiob is to be calculated.

@@ -57,7 +57,7 @@ plot.rasch <- function(x, ..., xlim = c(-4, 4), item = NULL, main = NULL){
 }
 
 # plot Information Curves
-info <- function(mod, plot = TRUE, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which='both'){
+info <- function(mod, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which='both'){
   if (is.null(theta)) {
     theta <- matrix(seq(-4, 4, 0.01), ncol=1) 
   } else {
@@ -84,7 +84,7 @@ info <- function(mod, plot = TRUE, theta = NULL, item = NULL, main_item = NULL, 
   }
   colnames(theta) <- c('theta', colnames(mod$items))
   theta           <- cbind(theta, Total = apply(theta[,-1], 1, sum))
-  if (plot == TRUE){
+
   its   <- c(colnames(mod$items), 'Total')
   theta <- reshape(as.data.frame(theta),
                    varying   = its,
@@ -138,7 +138,6 @@ info <- function(mod, plot = TRUE, theta = NULL, item = NULL, main_item = NULL, 
      if (which == 'both')  print(p)
      if (which == 'item')  print(itemI)
      if (which == 'total') print(totalI)
-  }
   invisible(theta)
 }
 
