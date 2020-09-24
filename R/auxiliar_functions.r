@@ -67,8 +67,9 @@ coef.rasch <- function(object, ...){
 }
 
 # summary
-summary.rasch <- function(object, correlation = FALSE, signif.stars = getOption("show.signif.stars"), ...){
+summary.rasch <- function(object, cov_type = 'wald', correlation = FALSE, signif.stars = getOption("show.signif.stars"), ...){
   stopifnot(inherits(object, 'rasch'))
+  if(! cov_type %in% c('wald', 'opg', 'sandwich')) stop("cov_type must be one of 'wald', 'opg' or 'sandwich'")
   out <- list()
   
   cat(paste('n',      nrow(object$items),     sep='      '), '\n')
@@ -82,6 +83,17 @@ summary.rasch <- function(object, correlation = FALSE, signif.stars = getOption(
   pnames  <- unlist(lapply(strsplit(rownames(object$coef), '_'),function(x) x[1]))
   pvnames <- rownames(object$coef)
   
+  # covariance matrix estiamtion (if necessary)
+  if (cov_type != 'wald'){
+    V <- vcov(object, type = cov_type)
+    std_err         <- sqrt(diag(V))
+    object$coef[,2] <- std_err
+    h0              <- ifelse(pnames == 'alpha', 1, 0)
+    object$coef[,3] <- (object$coef[,1] - h0)/object$coef[,2]
+    dof             <- nrow(object$items) - length(pnames)
+    object$coef[,4] <- 2*(1 - pt(abs(object$coef[,3]),df = dof))
+  }
+
   if ('alpha' %in% pnames){
     cat('\n')
     cat('Discrimination parameters','\n')
@@ -147,9 +159,13 @@ summary.rasch <- function(object, correlation = FALSE, signif.stars = getOption(
 }
 
 # vcov
-vcov.rasch <- function(object, ...){
+vcov.rasch <- function(object, type = 'wald', ...){
   stopifnot(inherits(object, 'rasch'))
-  return(object$vcov)
+  V <- switch(type,
+              'wald'     = object$vcov,
+              'opg'      = opg(object),
+              'sandwich' = sandwich(object))
+  return(V)
 }
 
 # confint
@@ -178,7 +194,7 @@ confint.rasch <- function(object, parm, level = 0.95, type = 'wald', B = 99, ...
     }
   }
   if (type == 'profile'){
-    ci <- profile(object, alpha = 1 - level)
+    ci <- proflik(object, alpha = 1 - level)
   }
   if (type == 'boot'){
     boots <- pbootr(object, B = B)
@@ -514,11 +530,12 @@ pbootr <- function(mod, B = 99, trace = TRUE){
 }
 
 # profile likelihood CIs
-profile <- function(mod, alpha = 0.05){
+proflik <- function(mod, alpha = 0.05){
   est  <- coef(mod)
   init <- unlist(est$est.d)
   if('est.a' %in% names(est)) init <- c(init, log(est$est.a))
-  L0   <- mod$loglik - qchisq(1 - alpha/2, 1)/2
+  qch2 <- qchisq(1 - alpha, 1)/2
+  L0   <- mod$loglik - qch2
   
   items <- mod$items
   npar  <- length(init)
@@ -531,14 +548,14 @@ profile <- function(mod, alpha = 0.05){
   fzero <- function(h){
     initL   <- init
     fixL    <- rep(NA, npar)
-    fixL[i] <- initL[i] <- initL[i]*h
-    par <- nlminb(start     = initL,
-                  objective = get(flik),
-                  X         = items,
-                  control   = list(rel.tol = 1e-5,
-                                   x.tol   = 1e-5),
-                  fixed     = fixL)
-    -par$objective - L0
+    fixL[i] <- initL[i] <- initL[i] + h
+    prof <- nlminb(start     = initL,
+                   objective = get(flik),
+                   X         = items,
+                   control   = list(rel.tol = 1e-7,
+                                    x.tol   = 1e-7),
+                   fixed     = fixL)
+    -prof$objective - L0
   }
   
   # free parameters
@@ -546,23 +563,34 @@ profile <- function(mod, alpha = 0.05){
   if (any(is.na(mod$coef[,2]))){
     free <- free[-which(is.na(mod$coef[,2]))]
   }
-  
+
   cat('Profiling the likelihood ...','\n')
   for (i in free){
-    # left side
-    CI[i,1] <- init[i] * uniroot(fzero, interval = c(0.01, 1))$root
-    # right side
-    CI[i,2] <- init[i] * uniroot(fzero, interval = c(1, 100))$root
+    # extremes of intervals 
+    xl <- -2 ; fxl <- fzero(-2)
+    xr <-  2 ; fxr <- fzero(2)
+    while(fxl > 0){
+      xl <- xl*2
+      fxl <- fzero(xl)
+    }
+    while(fxr > 0){
+      xr <- xr*2
+      fxr <- fzero(xr)
+    }
+    
+    CI[i,1] <- init[i] + uniroot(fzero, interval = c(xl, 0), f.lower = fxl, f.upper = qch2, tol = 1e-3)$root
+    CI[i,2] <- init[i] + uniroot(fzero, interval = c(0, xr), f.lower = qch2, f.upper = fxr, tol = 1e-3)$root
     print(names(init)[i])
+  }
+  # exponentiate discrimination parameters
+  if ('est.a' %in% names(est)){
+    k <- length(est$est.a)
+    J <- ncol(items)
+    CI[(J + 1):(J + k),] <- exp(CI[(J + 1):(J + k),])
   }
   
   rownames(CI) <- rownames(mod$coef)
-  colnames(CI) <- paste(round(c(alpha/2, 1 - alpha/2)*100, 1), '%')
-  J <- ncol(mod$items)
-  if('est.a' %in% names(est)){
-    p <- length(est$est.a)
-    CI[(J + 1):(J + p), ] <- exp(CI[(J + 1):(J + p), ])
-  }
+  colnames(CI) <- paste(round(c(alpha/2, 1 - alpha/2)*100, 1), '%',sep = '')
   return(CI)
 }
 

@@ -7,7 +7,7 @@
 Approximate the marginal log-likelihood of a Rasch regression model using Laplace approximation.
 }
 \usage{
-  raschreglikLA(par, X, Z)
+  raschreglikLA(par, X, Z, fixed = NULL)
 }
 
 \arguments{
@@ -19,6 +19,9 @@ Approximate the marginal log-likelihood of a Rasch regression model using Laplac
   }
   \item{Z}{
     Regression matrix (p columns).
+  }
+  \item{fixed}{
+    Optional numeric vector (length J). If supplied, only NA entries in fixed will be estimated. 
   }
 }
 \details{

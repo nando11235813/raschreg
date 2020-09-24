@@ -8,18 +8,21 @@
   Returns the variance-covariance matrix of the main parameters of a fitted model object.
 }
 \usage{
-  \method{vcov}{rasch}(object, ...)
+  \method{vcov}{rasch}(object, type = 'wald', ...)
 }
 \arguments{
   \item{object}{
     A fitted rasch model.
+  }
+  \item{type}{
+    A character indicating which covariance matrix estimation is to be used. If 'hess', the Hessian matrix of log-likelihood  is used. if 'opg', the outer product of log-likelihood gradient is used. If 'sandwich', the previous two are used in a Huber type estimator.
   }
   \item{...}{
     Additional arguments.
   }
 }
 \details{
-Extracts cariance/covariance matrix of a fitted Rasch model. This matrix is approximated inverting the Hessian matrix of the (negative) log-lihelihood.
+Extracts variance/covariance matrix of a fitted Rasch model. In the case of discrimination parameters, a delta method correction is implemented because these parameters are estimated on a logarithmic scale.
 }
 \value{
 A matrix whose entries are the estimated covariances between the parameter estimates in the model.
