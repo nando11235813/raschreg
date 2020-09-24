@@ -67,7 +67,7 @@ coef.rasch <- function(object, ...){
 }
 
 # summary
-summary.rasch <- function(object, cov_type = 'wald', correlation = FALSE, signif.stars = getOption("show.signif.stars"), ...){
+summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, signif.stars = getOption("show.signif.stars"), ...){
   stopifnot(inherits(object, 'rasch'))
   if(! cov_type %in% c('wald', 'opg', 'sandwich')) stop("cov_type must be one of 'wald', 'opg' or 'sandwich'")
   out <- list()
@@ -84,8 +84,8 @@ summary.rasch <- function(object, cov_type = 'wald', correlation = FALSE, signif
   pvnames <- rownames(object$coef)
   
   # covariance matrix estiamtion (if necessary)
-  if (cov_type != 'wald'){
-    V <- vcov(object, type = cov_type)
+  if (cov_type != 'hessian'){
+    V               <- vcov(object, type = cov_type)
     std_err         <- sqrt(diag(V))
     object$coef[,2] <- std_err
     h0              <- ifelse(pnames == 'alpha', 1, 0)
@@ -159,10 +159,10 @@ summary.rasch <- function(object, cov_type = 'wald', correlation = FALSE, signif
 }
 
 # vcov
-vcov.rasch <- function(object, type = 'wald', ...){
+vcov.rasch <- function(object, type = 'hess', ...){
   stopifnot(inherits(object, 'rasch'))
   V <- switch(type,
-              'wald'     = object$vcov,
+              'hess'     = object$vcov,
               'opg'      = opg(object),
               'sandwich' = sandwich(object))
   return(V)
