@@ -4,7 +4,7 @@ The library _raschreg_ was created an mantained by a group of statisticians from
 ***
 ## The models
 Having a set of _p_ items (Y<sub>1</sub>, Y<sub>2</sub>, ..., Y<sub>p</sub>) the probabilistic structure for the models is:   
-P(Y<sub>j</sub>=1|&theta;<sub>i</sub>) = logit(&alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>))   
+logit(P(Y<sub>j</sub>=1|&theta;<sub>i</sub>)) = &alpha;<sub>j</sub>(&theta;<sub>i</sub> - &delta;<sub>j</sub>)   
 &theta;<sub>i</sub> ~ N(0, 1)   
 Where &theta;<sub>i</sub>, &delta;<sub>j</sub> and &alpha;<sub>j</sub> represent person, difficulty and discrimination parameters respectively.
 
@@ -16,8 +16,6 @@ _raschreg_ provides a set of functions to fit, analyse and plot IRT models inten
 All previous models allow the posibility to incorporate explanatory variables (qualitative or quantitative) for person parameters.   
 In this case:   
 &theta;<sub>i</sub> ~ N(X'&beta;, 1)   
-
-Moreover, adding different model constraints, _raschreg_ allow the posibility to restrict difficulty parameters by: &delta;<sub>1</sub>+...+ &delta;<sub>p</sub>=0
 ***
 ## Features
 1. Models are estimated by maximum marginal likelihood, integrating person parameters via Laplace approximation. Estimated models are stored in _rasch_ objects similarly to _lm_ or _glm_ objects.   
@@ -34,8 +32,7 @@ Moreover, adding different model constraints, _raschreg_ allow the posibility to
     * Forest plots
 ***
 ## Installation
-You can install the development version from GitHub using library [remotes](https://cran.r-project.org/web/packages/remotes/index.html):   
+You can install the development version from GitHub using library [devtools](https://CRAN.R-project.org/package=devtools):   
 ```{r }
-library(remotes)   
-install_github("nando11235813/raschreg", ref = "master")
+devtools::install_github("nando11235813/raschreg")
 ```
