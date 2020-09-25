@@ -48,29 +48,27 @@ raschdlikLA <- function(par, X, fixed = NULL){
                  as.data.frame(table(pat)),
                  by = 'pat',
                  sort = FALSE)$Freq
-  delta <- par[1:J]
-  alpha <- exp(rep(par[J + 1], J))
-
   # constraints
   if (!is.null(fixed)){
     if (length(fixed) != (J + 1)) stop("Wrong length in 'fixed'")
     fix_d <- which(!is.na(fixed))
-    delta[fix_d] <- fixed[fix_d]
+    par[fix_d] <- fixed[fix_d]
   }
-  
+  delta  <- par[seq(J)]
+  alphas <- exp(rep(par[J + 1], J))
   # maximum on each row of X
   bmax <- apply(X, 1,
                 function(rowi) optimize(hbc,
                                         interval = c(-4,4),
                                         x   = rowi,
                                         d   = delta,
-                                        a   = alpha,
+                                        a   = alphas,
                                         tol = 1e-4,
                                         maximum = TRUE)$maximum)
   ll   <- raschlik(d    = delta, 
                    X    = X,
                    bmax = bmax,
-                   a    = alpha,
+                   a    = alphas,
                    np   = np)
   return(-ll)
 }
@@ -85,30 +83,30 @@ irt2plikLA <- function(par, X, fixed = NULL){
                 by   = 'pat',
                 sort = FALSE)$Freq
   # constraints
+  J <- ncol(X)
   if (!is.null(fixed)){
     if (length(fixed) != (2*J)) stop("Wrong length in 'fixed'")
     fix_d <- which(!is.na(fixed))
     par[fix_d] <- fixed[fix_d]
   }
   
-  J     <- ncol(X)
-  delta <- par[seq(J)]
-  alpha <- exp(par[-seq(J)])
-
+  delta  <- par[seq(J)]
+  alphas <- exp(par[-seq(J)])
+  
   # maximum on each X row
   bmax <- apply(X, 1,
                 function(rowi) optimize(hbc,
-                                        interval = c(-3, 3),
+                                        interval = c(-4, 4),
                                         x        = rowi,
                                         d        = delta,
-                                        a        = alpha,
+                                        a        = alphas,
                                         tol      = 1e-4,
                                         maximum  = TRUE)$maximum)
   # log-likelihood value hmax-0.5*log(-h''max)
   ll <- raschlik(d    = delta,
                  X    = X,
                  bmax = bmax,
-                 a    = alpha,
+                 a    = alphas,
                  np   = np)
   return(-ll)
 }
@@ -119,12 +117,20 @@ irt2plikLA <- function(par, X, fixed = NULL){
 #################################
 
 # Rasch Regression Model
-raschreglikLA <- function(par, X, Z){
+raschreglikLA <- function(par, X, Z, fixed = NULL){
 	J      <- ncol(X)
+	p      <- ncol(Z)
+	
+	# constraints
+  if (!is.null(fixed)){
+    if (length(fixed) != (J + p)) stop("Wrong length in 'fixed'")
+    fix_d <- which(!is.na(fixed))
+    par[fix_d] <- fixed[fix_d]
+  }
 	deltas <- par[seq(J)]
 	beta   <- par[-seq(J)]
 	alfas  <- rep(1, J)
-
+	
 	# maximum of each row
 	bmax <- apply(data.frame(X,Z),
 	              1,

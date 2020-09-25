@@ -57,7 +57,7 @@ plot.rasch <- function(x, ..., xlim = c(-4, 4), item = NULL, main = NULL){
 }
 
 # plot Information Curves
-info <- function(mod, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which='both'){
+info <- function(mod, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which = 'both', plot = TRUE){
   if (is.null(theta)) {
     theta <- matrix(seq(-4, 4, 0.01), ncol=1) 
   } else {
@@ -78,15 +78,15 @@ info <- function(mod, theta = NULL, item = NULL, main_item = NULL, main_total = 
     pg       <- mod$coef[those, 1]
     mod$coef <- mod$coef[-those, ]
   } else pg  <- rep(0, J)
-  for (i in 1:nrow(mod$coef)){
+  for (i in 1:J){
     p1p   <- (1 - pg[i])*(a[i]^2)*(1/(1 + exp( -(theta[, 1] - d[i]))))*(1/(1 + exp(theta[, 1] - d[i])))*(exp(theta[, 1] - d[i]))/(pg[i] + exp(theta[, 1] - d[i]))
     theta <- cbind(theta, p1p)
   }
   colnames(theta) <- c('theta', colnames(mod$items))
-  theta           <- cbind(theta, Total = apply(theta[,-1], 1, sum))
+  theta0          <- cbind(theta, Total = apply(theta[,-1], 1, sum))
 
   its   <- c(colnames(mod$items), 'Total')
-  theta <- reshape(as.data.frame(theta),
+  theta <- reshape(as.data.frame(theta0),
                    varying   = its,
                    direction = 'long',
                    v.names   = 'valor',
@@ -134,11 +134,12 @@ info <- function(mod, theta = NULL, item = NULL, main_item = NULL, main_total = 
        geom_vline(xintercept = 0) + 
        geom_hline(yintercept = 0)
      p <- plot_grid(itemI, totalI, nrow = 1)
-    
-     if (which == 'both')  print(p)
-     if (which == 'item')  print(itemI)
-     if (which == 'total') print(totalI)
-  invisible(theta)
+     if (plot){
+       if (which == 'both')  print(p)
+       if (which == 'item')  print(itemI)
+       if (which == 'total') print(totalI)
+     } 
+  invisible(theta0)
 }
 
 # Person Item Map
