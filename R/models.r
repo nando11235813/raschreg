@@ -241,7 +241,7 @@ irt2p <- function(items, init = NULL, fixed = NULL){
 #####################
 
 # Rasch Regression Model
-raschreg <- function(items, f_reg, z_reg, init = NULL){
+raschreg <- function(items, f_reg, z_reg, init = NULL, fixed = NULL){
   if ('data.frame' %in% class(items))   items <- as.matrix(items)
   if (! 'data.frame' %in% class(z_reg)) z_reg <- as.data.frame(z_reg)
   z_reg <- as.matrix(model.frame(f_reg,
@@ -265,16 +265,39 @@ raschreg <- function(items, f_reg, z_reg, init = NULL){
 	              objective = raschreglikLA,
 	              X         = items,
 	              Z         = z_reg,
-	              control   = list(rel.tol = 1e-5, x.tol = 1e-4))
+	              control   = list(rel.tol = 1e-5,
+	                               x.tol = 1e-4),
+	              fixed = fixed)
 	
 	# approximate observed information matrix
 	H <- hessian(fun   = raschreglikLA,
 	             param = par$par,
 	             X     = items,
 	             Z     = z_reg,
-	             fun0  = par$objective)
-	V <- solve(H)
-	colnames(V)<-rownames(V)<-c(paste('delta', colnames(items), sep = '_'), colnames(z_reg))
+	             fun0  = par$objective,
+	             fixed = fixed)
+
+	if (!is.null(fixed)){
+	  fix_d <- which(!is.na(fixed))
+	  H <- H[-fix_d, -fix_d]
+	}
+	V  <- solve(H)
+
+	# constraints
+	unc <- 1:(J + p)
+	if (!is.null(fixed)){
+	  unc[which(!is.na(fixed))] <- NA
+	}
+	if (any(is.na(unc))){
+	  unc <- unc[!is.na(unc)]
+	  V1 <- matrix(NA, J + p, J + p)
+	  V1[unc, unc] <- V
+	  V <- V1
+	  rm(V1)
+	}
+
+	colnames(V) <- rownames(V) <- c(paste('delta', colnames(items), sep = '_'),
+	                                paste('beta', colnames(z_reg), sep = '_'))
 	se    <- sqrt(diag(V))
 	dof   <- nrow(items) - length(par$par)
 	coeff <- data.frame(par$par,
@@ -315,14 +338,14 @@ raschdreg <- function(items, f_reg, z_reg, init = NULL){
   p <- ncol(z_reg)
 
   # initial values
-  if (is.null(init)) init<-c(rep(0, J),1,rep(0,p))
-  lo <- c(rep(-Inf, J),0,rep(-Inf,p))
+  if (is.null(init)) init<-c(rep(0, J), 1, rep(0, p))
+  lo <- c(rep(-Inf, J), 0, rep(-Inf, p))
   
   # NA checking
   if(any(is.na(data.frame(items, z_reg)))) {
-    na    <-apply(is.na(data.frame(items, z_reg)), 1, sum)
-    items <- items[-which(na!=0),]
-    z_reg <- z_reg[-which(na!=0),]
+    na    <- apply(is.na(data.frame(items, z_reg)), 1, sum)
+    items <- items[-which(na != 0), ]
+    z_reg <- z_reg[-which(na != 0), ]
     print(paste(sum(na != 0), ' rows were removed', sep = ''))
   }
   
@@ -341,9 +364,11 @@ raschdreg <- function(items, f_reg, z_reg, init = NULL){
                Z     = z_reg,
                fun0  = par$objective)
   V <-solve(H)
-  colnames(V) <- rownames(V) <- c(paste('delta', colnames(items), sep='_'), 'alpha', colnames(z_reg))
-  se <- sqrt(diag(V))
-  dof <- nrow(items) - length(par$par)
+  colnames(V) <- rownames(V) <- c(paste('delta', colnames(items), sep='_'), 
+                                  'alpha',
+                                  paste('beta', colnames(z_reg), sep = '_'))
+  se    <- sqrt(diag(V))
+  dof   <- nrow(items) - length(par$par)
   coeff <- data.frame(par$par,
                       se,
                       (par$par-init)/se,
@@ -408,7 +433,9 @@ irt2preg <- function(items, f_reg, z_reg, init = NULL){
              Z     = z_reg,
              fun0  = par$objective)
   V     <- solve(H)
-  colnames(V) <- rownames(V) <- c(paste('delta', colnames(items), sep='_'),paste('alpha',colnames(items), sep = '_'), colnames(z_reg))
+  colnames(V) <- rownames(V) <- c(paste('delta', colnames(items), sep='_'),
+                                  paste('alpha',colnames(items), sep = '_'),
+                                  paste('beta', colnames(z_reg), sep = '_'))
   se    <- sqrt(diag(V))
   dof   <- nrow(items) - length(par$par)
   coeff <- data.frame(par$par,

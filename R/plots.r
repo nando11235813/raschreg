@@ -190,7 +190,7 @@ pim <- function(mod, main = NULL){
   print(g)
 }
 
-# Forest plot}
+# Forest plot
 forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_reg = NULL){
   stopifnot(inherits(mod, 'rasch'))
   s      <- summary(mod)

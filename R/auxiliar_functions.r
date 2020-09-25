@@ -69,7 +69,7 @@ coef.rasch <- function(object, ...){
 # summary
 summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, signif.stars = getOption("show.signif.stars"), ...){
   stopifnot(inherits(object, 'rasch'))
-  if(! cov_type %in% c('wald', 'opg', 'sandwich')) stop("cov_type must be one of 'wald', 'opg' or 'sandwich'")
+  if(! cov_type %in% c('hessian', 'opg', 'sandwich')) stop("cov_type must be one of 'wald', 'opg' or 'sandwich'")
   out <- list()
   
   cat(paste('n',      nrow(object$items),     sep='      '), '\n')
@@ -79,25 +79,30 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
   out$AIC    <- AIC(object)
   out$BIC    <- BIC(object)
   out$logLik <- object$loglik
-  
-  pnames  <- unlist(lapply(strsplit(rownames(object$coef), '_'),function(x) x[1]))
-  pvnames <- rownames(object$coef)
+
+  # coefficient estimates
+  est <- object$coef
+  if ('beta' %in% names(object)) est <- rbind(est, object$beta) 
+
+  # coefficient names
+  pvnames <- rownames(est)
+  pnames  <- unlist(lapply(strsplit(pvnames, '_'),function(x) x[1]))
   
   # covariance matrix estiamtion (if necessary)
   if (cov_type != 'hessian'){
-    V               <- vcov(object, type = cov_type)
-    std_err         <- sqrt(diag(V))
-    object$coef[,2] <- std_err
-    h0              <- ifelse(pnames == 'alpha', 1, 0)
-    object$coef[,3] <- (object$coef[,1] - h0)/object$coef[,2]
-    dof             <- nrow(object$items) - length(pnames)
-    object$coef[,4] <- 2*(1 - pt(abs(object$coef[,3]),df = dof))
+    V       <- vcov(object, type = cov_type)
+    std_err <- sqrt(diag(V))
+    est[,2] <- std_err[1:length(pnames)]
+    h0      <- ifelse(pnames == 'alpha', 1, 0)
+    est[,3] <- (est[,1] - h0)/est[,2]
+    dof     <- nrow(object$items) - length(pnames)
+    est[,4] <- 2*(1 - pt(abs(est[,3]),df = dof))
   }
 
   if ('alpha' %in% pnames){
     cat('\n')
     cat('Discrimination parameters','\n')
-    a  <- round(object$coef[which(pnames == 'alpha'),],3)
+    a  <- round(est[which(pnames == 'alpha'),],3)
     if(any(a[, 4] <= 0.001, na.rm = TRUE)) a[a[, 4] == 0,4]<-'<0.001'
     ss <- sstars(a[,4])
     names(a) <- c('Estimate',
@@ -109,45 +114,44 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
       names(a)[ncol(a)] <- ''
     }
     print(a)
-    object$coef <- object$coef[-which(pnames == 'alpha'), ]
     out$alpha   <- a
   }
   cat('\n')
   cat('Difficulty parameters','\n')
-  s  <- round(object$coef, 3)
-  if(any(s[,4] <= 0.001, na.rm = TRUE)) s[which(s[,4] <= 0.001), 4] <- '<0.001'
-  ss <- sstars(s[, 4])
-  names(s) <- c('Estimate',
+  d  <- round(est[which(pnames == 'delta'),],3)
+  if(any(d[,4] <= 0.001, na.rm = TRUE)) d[which(d[,4] <= 0.001), 4] <- '<0.001'
+  ss <- sstars(d[, 4])
+  names(d) <- c('Estimate',
                 'Std. Error',
                 't value',
                 'Pr(>|t|)')
   if (signif.stars) {
-    s <- data.frame(s, ss, check.names=FALSE)
-    names(s)[ncol(s)] <- ''
+    d <- data.frame(d, ss, check.names=FALSE)
+    names(d)[ncol(d)] <- ''
   }
-  print(s)
+  print(d)
   cat('___', '\n')
   print("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-  out$difficulty <- s
+  out$difficulty <- d
   
   if ('beta'%in%names(object)){
     cat('___', '\n')
     cat('Regression parameters', '\n')
-    s2 <- round(object$beta, 3)
-    if(any(s2[, 4] <= 0.001, na.rm = TRUE)) s2[s2[, 4] == 0,4] <- '<0.001'
-    ss <- sstars(s2[, 4])
-    names(s2)<-c('Estimate',
+    b <- round(est[which(pnames == 'beta'),],3)
+    if(any(b[, 4] <= 0.001, na.rm = TRUE)) b[b[, 4] == 0,4] <- '<0.001'
+    ss <- sstars(b[, 4])
+    names(b)<-c('Estimate',
                  'Std. Error',
                  't value',
                  'Pr(>|t|)')
     if (signif.stars) {
-      s2 <- data.frame(s2, ss, check.names = FALSE)
-      names(s2)[ncol(s2)] <- ''
+      b <- data.frame(b, ss, check.names = FALSE)
+      names(b)[ncol(b)] <- ''
     }
-    print(s2)
+    print(b)
     cat('___','\n')
     print("Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-    out$beta <- s2
+    out$beta <- b
   }
   if (correlation == TRUE){
     corr<-cov2cor(vcov(object))
@@ -159,10 +163,10 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
 }
 
 # vcov
-vcov.rasch <- function(object, type = 'hess', ...){
+vcov.rasch <- function(object, type = 'hessian', ...){
   stopifnot(inherits(object, 'rasch'))
   V <- switch(type,
-              'hess'     = object$vcov,
+              'hessian'  = object$vcov,
               'opg'      = opg(object),
               'sandwich' = sandwich(object))
   return(V)
@@ -348,8 +352,7 @@ ability <- function(mod, type = 'lord'){
 	if ('beta' %in% names(mod)){
 	  J    <- length(delta)
 	  beta <- mod$beta[, 1]
-	  bmax <- apply(data.frame(X, Y),
-	                1,
+	  bmax <- apply(data.frame(X, Y), 1,
 	                function(rowi)optimize(huc,
 	                                       interval = c(-4, 4),
 	                                       x = rowi[seq(J)],
@@ -362,7 +365,7 @@ ability <- function(mod, type = 'lord'){
 	  # aca podria ir otro if si llega a marchar "raschguessreg"
 	} else {
 	  if ('gamma' %in% pnames){
-	    bmax <- apply(X, 1,function(rowi)optimize(h1plgc,
+	    bmax <- apply(X, 1, function(rowi)optimize(h1plgc,
 	                                         interval = c(-4,4),
 	                                         x = rowi,
 	                                         d = delta,
@@ -390,9 +393,7 @@ ability <- function(mod, type = 'lord'){
 
 # bias
 bias <- function(mod, theta){
-  abs  <- info(mod,
-               plot  = FALSE,
-               theta = theta)
+  abs   <- info(mod, theta = theta, plot = FALSE)
   k     <- length(theta)
   J     <- ncol(abs) - 2
   b     <- rep(0, k)
@@ -479,6 +480,7 @@ anova.rasch<-function(object, ..., ref = 1){
   df   <- c(NA,  npars[-ref] - npars[ref])
   if (any(df[-1]<0)) warning('Check that the reference model is the more restricted')
   pv   <- c(1 - pchisq(LRT, df))
+  if (any(pv<0.001)) pv[pv<0.001] <- '<0.001'
   test <- data.frame(logLik  = lliks,
                      AIC     = AIC(object, ...)[, 2],
                      BIC     = BIC(object, ...)[, 2],

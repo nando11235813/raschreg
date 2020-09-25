@@ -8,7 +8,7 @@
 Estimate Rasch model incorporating regression variables for the abiity parameter, approximating the marginal log-likelihood using Laplace approximation.
 }
 \usage{
-  raschreg(items, f_reg, z_reg, init = NULL)
+  raschreg(items, f_reg, z_reg, init = NULL, fixed = NULL)
 }
 
 \arguments{
@@ -23,6 +23,9 @@ Estimate Rasch model incorporating regression variables for the abiity parameter
   }
   \item{init}{
     Optional numeric vector of initial values at which initialize numerical optimization.
+  }
+  \item{fixed}{
+    Optional numeric vector (length J + p). If supplied, only NA entries in fixed will be estimated. 
   }
 }
 \details{
@@ -54,7 +57,7 @@ An object of class \code{rasch} is a list containing the following componentes:
 }
 
 \examples{
-  n             <- 100
+  n             <- 400
   J             <- 7
   reg           <- diag(4) \%x\% rep(1, n/4)
   colnames(reg) <- paste('v', 1:4, sep = '')
