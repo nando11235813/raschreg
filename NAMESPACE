@@ -45,6 +45,7 @@ importFrom(stats, nlminb,
 import(ggplot2)
 importFrom(cowplot, plot_grid)
 importFrom(rlang, .data)
+importFrom(Rdpack,reprompt)
 S3method(print, rasch)
 S3method(coef, rasch)
 S3method(AIC, rasch)
