@@ -40,7 +40,7 @@ The data were obtained from a cross-sectional study executed in the Uruguayan Fa
 data(odont_ncd)
 items <- odont_ncd[,c('pocket', 'loa', 'decay', 'less_10', 'bleed', 'lesions')]
 
-mod <- raschreg(items, ~ rcs(age,3) + sex, odont_ncd)
+mod <- raschreg(items, ~ rcs(age, 3) + sex, odont_ncd)
 
 summary(mod)
 forest(mod)
