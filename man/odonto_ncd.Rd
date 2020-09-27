@@ -11,19 +11,21 @@
 \format{
   A data frame with 602 observations on the following 13 variables.
   \describe{
-    \item{\code{d_smoke}}{Daily smoking (0 = No, 1 = Yes).}
-    \item{\code{drink_2w}}{Drinking  (0 = Less than 2 times per week, 1 = 2 times per week, or more).}
-    \item{\code{phy_act}}{Physical Activity (0 = Does not meet WHO requirements, 1 = Metts WHO requirements).}
-    \item{\code{pocket}}{Periodontal Pockets (0 = No, 1 = Yes).}
-    \item{\code{f_dentition}}{Functional Dentition (0 = 20 theet or more, 1 = Less than 20 theet).}
-    \item{\code{decay}}{Decay (0 = Absence of decayed theet, 1= At least one decayed tooth).}
-    \item{\code{loa}}{Loss of Attachment (0 = No, 1 = Yes).}
-    \item{\code{bmi}}{Body Mass Index}
-    \item{\code{wth_r}}{Waist to Hip Ratio}
-    \item{\code{hypert}}{Hypertension (0 = No, 1 = Yes)}
-    \item{\code{diabetes}}{Diabetes (0 = No, 1 = Yes)}
+    \item{\code{sex}}{Sex, categories are M and F.}
     \item{\code{age}}{Age}
-    \item{\code{sex_f}}{Sex (0 = Male, 1 = Female)}
+    \item{\code{education}}{Highest educational level achieved, categories are elemmentary school, high school and dollege.}
+    \item{\code{phy_act}}{Physical Activity, categories are adequate and inadequate according to WHO criteria.}
+    \item{\code{hypert}}{Hypertension, categories are no and yes.}
+    \item{\code{diabetes}}{Diabetes, categories are no and yes.}
+    \item{\code{b_drink}}{Binge drinking, categories are yes and no.}
+    \item{\code{tobacco}}{Tobacco consumption, categories are current, former and never.}
+    \item{\code{bmi}}{Body Mass Index, categories are <25 and >25.}
+    \item{\code{pocket}}{Periodontal Pockets (0 = No, 1 = Yes).}
+    \item{\code{loa}}{Loss of Attachment (0 = No, 1 = Yes).}
+    \item{\code{decay}}{Decay (0 = Absence of decayed theet, 1= At least one decayed tooth).}
+    \item{\code{lesions}}{Mucosal lesions (0 = No, 1 = Yes).}
+    \item{\code{less_10}}{Less than 10 theet (0 = No, 1 = Yes).}
+    \item{\code{bleed}}{Bleeding (0 = No, 1 = Yes).}
   }
 }
 \details{
@@ -36,9 +38,9 @@ The data were obtained from a cross-sectional study executed in the Uruguayan Fa
 
 \examples{
 data(odont_ncd)
-items <- odont_ncd[,c('pocket', 'loa', 'decay', 'f_dentition')]
+items <- odont_ncd[,c('pocket', 'loa', 'decay', 'less_10', 'bleed', 'lesions')]
 
-mod <- raschreg(items, ~ age + sex_f, odont_ncd)
+mod <- raschreg(items, ~ rcs(age,3) + sex, odont_ncd)
 
 summary(mod)
 forest(mod)

@@ -41,7 +41,9 @@ importFrom(stats, nlminb,
                   AIC,
                   BIC,
                   logLik,
-                  residuals)
+                  residuals,
+                  contr.sum,
+                  'contrasts<-')
 import(ggplot2)
 importFrom(cowplot, plot_grid)
 importFrom(rlang, .data)
