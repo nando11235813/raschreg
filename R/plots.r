@@ -282,3 +282,38 @@ forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_re
   }
   plot_grid(plotlist = graphs, nrow = 1)
 }
+
+# plotfit
+itemfit <- function(mod, item, xlim = c(-3, 3), col = 'tomato', main = NULL){
+  est  <- coef(mod)
+  delta <- unlist(est$est.d)
+  J <- length(delta)
+  if('est.a' %in% names(est)) alpha <- est$est.a else alpha <-rep(1, J)
+  
+  # ability
+  lv <- ability(mod)
+  lv <- round(lv[,'thetac'],3)
+  
+  its    <- as.data.frame(mod$items)
+  its$lv <- lv
+  phat   <- aggregate(its[, 1:J],data.frame(lv=its$lv), mean, na.rm = TRUE)
+  
+  # item selection
+  ncol <- which(colnames(its) == item)
+  dat <- data.frame(lv =phat$lv, p_theta = phat[,ncol])
+
+  
+  # ICC
+  theta   <- seq(xlim[1], xlim[2], 0.01)
+  p_theta <- (1/(1 + exp(-alpha[ncol - 1]*(theta - delta[ncol - 1]))))
+  dat0    <- data.frame(lv = theta, p_theta)
+  
+  ggplot(dat0, aes(x = lv, y = p_theta)) +
+    geom_line(col = col, size = 1) +
+    geom_point(data = dat) +
+    ylim(0, 1) + 
+    xlab(expression(theta)) + ylab(expression(P(theta))) +
+    geom_hline(yintercept=c(0, 1)) +
+    geom_vline(xintercept=c(0)) +
+    ggtitle(main)
+}

@@ -38,7 +38,7 @@ Describes the relationship between the latent ability and the probability of a c
 }
 
 \seealso{
-  \code{\link{info}}, \code{\link{pim}}, \code{\link{forest}}
+  \code{\link{info}}, \code{\link{pim}}, \code{\link{forest}}, \code{\link{itemfit}}
 }
 \examples{
 n <- 100

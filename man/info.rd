@@ -45,7 +45,7 @@ A data.frame containing the values of \code{theta}, information of every item, a
 }
 
 \seealso{
-  \code{\link{plot.rasch}}, \code{\link{pim}}, \code{\link{forest}}
+  \code{\link{plot.rasch}}, \code{\link{pim}}, \code{\link{forest}}, \code{\link{itemfit}}
 }
 \examples{
 n   <- 100

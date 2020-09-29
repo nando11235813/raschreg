@@ -37,7 +37,7 @@
   \insertRef{lewis2001}{raschreg}
 }
 \seealso{
-  \code{\link{plot.rasch}}, \code{\link{info}}, \code{\link{pim}}
+  \code{\link{plot.rasch}}, \code{\link{info}}, \code{\link{pim}}, \code{\link{itemfit}}
 }
 \examples{
 n<-100

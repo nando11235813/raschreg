@@ -28,7 +28,7 @@
   \insertRef{wilson2005}{raschreg}
 }
 \seealso{
-  \code{\link{plot.rasch}}, \code{\link{info}}, \code{\link{forest}}
+  \code{\link{plot.rasch}}, \code{\link{info}}, \code{\link{forest}}, \code{\link{itemfit}}
 }
 \examples{
 n <- 100
