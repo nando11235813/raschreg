@@ -1,7 +1,8 @@
-# raschreg
 
-![alt text](https://github.com/[nando11235813]/[raschreg]/blob/[master]/raschreg_icon.png?raw=true)
-
+# raschreg <img src="images/raschreg_icon.png" width=130 align = "right"/>
+&nbsp;
+&nbsp;
+## Overview
 The library _raschreg_ was created an mantained by a group of statisticians from Universidad de la República, Uruguay. It's primary pourpose is to provide R users with a framework for Item Response Theory (IRT) models, allowing for the possibility to include regression effects for the person parameters.   
 ***
 ## The models
