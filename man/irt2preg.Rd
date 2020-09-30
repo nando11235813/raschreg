@@ -53,15 +53,10 @@ An object of class \code{rasch} is a list containing the following componentes:
   \code{\link{rasch}}, \code{\link{raschd}}, \code{\link{raschreg}}, \code{\link{raschdreg}}, \code{\link{irt2p}}
 }
 \examples{
-  n             <- 100
-  J             <- 7
-  reg           <- diag(4) \%x\% rep(1, n/4)
-  colnames(reg) <- paste('v', 1:4, sep = '')
-  reg_coef      <- c(-4, -2, 2, 4)
-  Xr            <- sim_rasch(n, J, 
-                             alpha = runif(J, 0.5, 1.5),
-                             reg = reg, beta = reg_coef)
-  mod           <- irt2preg(Xr, 
-                            ~ -1 +v1 + v2 + v3 + v4,
-                            reg)
+  dif  <- c(-3, -2, -1, 0, 1, 2, 3) 
+	n    <- 200
+	x1x2 <- cbind(x1 = rnorm(n), x2 = ifelse(runif(n) < 0.5, 0, 1))
+	beta <- c(1.2, 0.7)
+	X    <- sim_rasch(n = n, J = 7, delta = dif, reg = x1x2, beta = beta)
+  mod  <- irt2preg(X, ~ x1 + x2, x1x2)
 }
