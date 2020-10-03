@@ -42,7 +42,8 @@ importFrom(stats, nlminb,
                   logLik,
                   residuals,
                   contr.sum,
-                  'contrasts<-')
+                  'contrasts<-'
+                  aggregate)
 import(ggplot2)
 importFrom(cowplot, plot_grid)
 importFrom(rlang, .data)
