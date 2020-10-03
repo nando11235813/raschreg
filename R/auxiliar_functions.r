@@ -723,9 +723,9 @@ hess <- function(mod){
   n     <- nrow(X)
   J     <- ncol(X)
   if (!is.null(Z)) {
-    Vpars <- hessian(fun = get(flik), param = pars, X = X, Z = Z, fun0 = mod$loglik, fixed = NULL)
+    Vpars <- hessian(fun = get(flik), param = pars, X = X, Z = Z, fun0 = -mod$loglik, fixed = NULL)
   } else {
-    Vpars <- hessian(fun = get(flik), param = pars, X = X, fun0 = mod$loglik, fixed = NULL)
+    Vpars <- hessian(fun = get(flik), param = pars, X = X, fun0 = -mod$loglik, fixed = NULL)
   }  
   Vpars <- solve(Vpars)
   # delta method covariances (back-transform log(discrimination))
