@@ -219,7 +219,10 @@ confint.rasch <- function(object, parm, level = 0.95, type = 'wald', B = 99, ...
 update.rasch <- function(object, formula., ..., evaluate = TRUE) {
   stopifnot(inherits(object, 'rasch'))
   call   <- object$call
-  f_reg  <- formula(paste('~', paste(colnames(object$linpred), collapse = '+'),sep = ''))
+  if ('linpred' %in% names(object)) {
+    x1xp   <- paste(colnames(object$linpred), collapse = '+')
+    f_reg  <- formula(paste('~', x1xp,sep = ''))
+  } else f_reg <- NULL
   extras <- match.call(expand.dots = FALSE)$...
   if (is.null(call)) 
     stop("Need an object with a 'call' component")
