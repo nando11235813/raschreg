@@ -780,7 +780,7 @@ pev <- function(z, f){
   	# recode 'name(category)'
   	ncat <- names(ctr)
   	k <- length(ncat)
-  	for (i in 1:2){
+  	for (i in 1:k){
   		ncol    <- grep(ncat[i],colnames(mm))
   		if (length(ncol)>1) ncol <- ncol[1]
   		catnum  <- gsub(ncat[i],'',colnames(mm)[ncol])
