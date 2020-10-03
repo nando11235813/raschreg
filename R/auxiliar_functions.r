@@ -154,7 +154,7 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
     out$beta <- b
   }
   if (correlation == TRUE){
-    corr<-cov2cor(vcov(object))
+    corr <- cov2cor(vcov(object, type = cov_type))
     cat('___', '\n')
     print(corr, 2)
     out$correlation <- corr
@@ -166,7 +166,7 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
 vcov.rasch <- function(object, type = 'hessian', ...){
   stopifnot(inherits(object, 'rasch'))
   V <- switch(type,
-              'hessian'  = object$vcov,
+              'hessian'  = hess(object),
               'opg'      = opg(object),
               'sandwich' = sandwich(object))
   return(V)
@@ -219,7 +219,7 @@ confint.rasch <- function(object, parm, level = 0.95, type = 'wald', B = 99, ...
 update.rasch <- function(object, formula., ..., evaluate = TRUE) {
   stopifnot(inherits(object, 'rasch'))
   call   <- object$call
-  f_reg  <- formula(paste('~', paste(rownames(object$beta), collapse = '+'), '-1',sep = ''))
+  f_reg  <- formula(paste('~', paste(colnames(object$linpred), collapse = '+'),sep = ''))
   extras <- match.call(expand.dots = FALSE)$...
   if (is.null(call)) 
     stop("Need an object with a 'call' component")
@@ -337,58 +337,46 @@ ability <- function(mod, type = 'lord'){
   pvnames <- rownames(mod$coef)
   J <- ncol(mod$items)
 	if ('alpha' %in% pnames){
-	  a        <- mod$coef[which(pnames == 'alpha'), 1]
+	  alpha    <- mod$coef[which(pnames == 'alpha'), 1]
 	  mod$coef <- mod$coef[-which(pnames == 'alpha'),]
-	  if(length(a )== 1) a <- rep(a, J)
-	} else a <- rep(1, J)
+	  if(length(alpha)== 1) alpha <- rep(alpha, J)
+	} else alpha <- rep(1, J)
 	if ('gamma' %in% pnames){
 	  pg       <- mod$coef[which(pnames == 'gamma'), 1]
 	  mod$coef <- mod$coef[-which(pnames == 'gamma'), ]
 	} else pg  <-rep(0, J)
   delta <- mod$coef[, 1]
 	X     <- mod$items
-	Y     <- mod$linpred
+	Z     <- mod$linpred
 	# b max
 	if ('beta' %in% names(mod)){
 	  J    <- length(delta)
 	  beta <- mod$beta[, 1]
-	  bmax <- apply(data.frame(X, Y), 1,
+	  bmax <- apply(data.frame(X, Z), 1,
 	                function(rowi)optimize(huc,
 	                                       interval = c(-4, 4),
 	                                       x = rowi[seq(J)],
 	                                       d = delta,
-	                                       a = a,
+	                                       a = alpha,
 	                                       beta = beta,
 	                                       z = rowi[-seq(J)],
 	                                       tol = 1e-4 ,
 	                                       maximum=TRUE)$maximum)
-	  # aca podria ir otro if si llega a marchar "raschguessreg"
 	} else {
-	  if ('gamma' %in% pnames){
-	    bmax <- apply(X, 1, function(rowi)optimize(h1plgc,
-	                                         interval = c(-4,4),
+	  bmax <- apply(X, 1, function(rowi)optimize(hbc,
+	                                         interval = c(-4, 4),
 	                                         x = rowi,
-	                                         d = delta,
-	                                         g = pg,
-	                                         tol = 1e-4,
-	                                         maximum = TRUE)$maximum)
-	  }
-	  else {
-	    bmax <- apply(X, 1, function(rowi)optimize(hbc,
-	                                         interval = c(-4,4),
-	                                         x = rowi,
-	                                         a = a,
+	                                         a = alpha,
 	                                         d = delta,
 	                                         tol = 1e-4,
 	                                         maximum = TRUE)$maximum)
 	  }
-	}
-	re <- data.frame(theta = bmax)
+	abty <- data.frame(theta = bmax)
 	if (type=='lord'){
-	  re$bias   <- bias(mod, theta = re$theta)
-	  re$thetac <- re$theta + re$bias
+	  abty$bias   <- bias(mod, theta = abty$theta)
+	  abty$thetac <- abty$theta + abty$bias
 	}
-	return(re)
+	return(abty)
 }
 
 # bias
@@ -439,22 +427,22 @@ rcs<-function(x, m = NULL, knots = NULL, scale = TRUE){
 predict.rcs<-function(object, new_x, ...){
 	knots   <- attr(object, 'knots')
 	b_knots <- attr(object, 'Boundary.knots')
-	m       <- length(knots) + 2
+	m       <- length(knots)
+	sds     <- attr(object, 'scale')
 
 	pCs <- matrix(NA,
 	              nrow = length(new_x),
 	              ncol = m - 2)
-	for (i in 1:(m - 2)) pCs[, i] <- apply(cbind(0, (new_x-  knots[i])^3), 1, max) - apply(cbind(0, (new_x - knots[m - 1])^3), 1, max)*(knots[m] - knots[i])/(knots[m] - knots[m - 1]) + apply(cbind(0, (new_x - knots[m])^3), 1, max)*(knots[m-1] - knots[i])/(knots[m] - knots[m - 1])
+	for (i in 1:(m-2)) pCs[, i] <- apply(cbind(0, (new_x - knots[i])^3), 1, max) - apply(cbind(0, (new_x - knots[m - 1])^3), 1, max)*(knots[m] - knots[i])/(knots[m] - knots[m - 1]) + apply(cbind(0, (new_x - knots[m])^3), 1, max)*(knots[m - 1] - knots[i])/(knots[m] - knots[m - 1])
 	pCs <- cbind(new_x,pCs)
-	colnames(pCs) <- paste('C', 0:(m - 2), sep = '')
-	if(scale) {
-		sds <- apply(object ,2, sd)
+	colnames(pCs) <- colnames(object)
+	if(!is.null(sds)) {
 		pCs <- scale(pCs, center = FALSE, scale = sds)
 	}
-	attr(Cs,'class')          <- c('rcs', 'object', 'matrix')
-	attr(Cs,'intercept')      <- FALSE
-	attr(Cs,'Boundary.knots') <-range(new_x)
-	attr(Cs,'knots')          <-knots
+	attr(pCs,'class')          <- c('rcs', 'object', 'matrix')
+	attr(pCs,'intercept')      <- FALSE
+	attr(pCs,'Boundary.knots') <- range(new_x)
+	attr(pCs,'knots')          <- knots
 
 	return(pCs)
 }
@@ -536,6 +524,10 @@ proflik <- function(mod, alpha = 0.05){
   est  <- coef(mod)
   init <- unlist(est$est.d)
   if('est.a' %in% names(est)) init <- c(init, log(est$est.a))
+  if('est.b' %in% names(est)) {
+    init <- c(init, est$est.b)
+    Z    <- mod$linpred
+  } else Z <- NULL
   qch2 <- qchisq(1 - alpha, 1)/2
   L0   <- mod$loglik - qch2
   
@@ -551,12 +543,8 @@ proflik <- function(mod, alpha = 0.05){
     initL   <- init
     fixL    <- rep(NA, npar)
     fixL[i] <- initL[i] <- initL[i] + h
-    prof <- nlminb(start     = initL,
-                   objective = get(flik),
-                   X         = items,
-                   control   = list(rel.tol = 1e-7,
-                                    x.tol   = 1e-7),
-                   fixed     = fixL)
+    if(is.null(Z)) prof <- nlminb(start = initL, objective = get(flik), X = items, control = list(rel.tol = 1e-7, x.tol = 1e-7), fixed = fixL)
+    else           prof <- nlminb(start = initL, objective = get(flik), X = items, Z = Z, control = list(rel.tol = 1e-7, x.tol = 1e-7), fixed = fixL)               
     -prof$objective - L0
   }
   
@@ -605,19 +593,19 @@ test <- function(mod, restr){
     rn    <- c(rn, rownames(mod$beta))
   }
   npar <- length(param)
-  
+
   # checking restrictions vector
   if (length(restr) != npar) stop("Wrong length in 'restr'")
-  
+
   # refit the model s.t. restrictions
-  modr   <- update(mod, fixed = restr)
+  modr   <- update(mod, formula. = f, fixed = restr)
   paramr <- modr$coef[, 1]
   if ('beta' %in% names(modr)) paramr <- c(paramr, mod$beta[, 1])
 
   # log-likelihood function
   flik <- as.character(mod$call[[1]])
   flik <- paste(flik, 'likLA', sep = '')
-  
+
   # score vector
   score <- gradient(fun   = get(flik),
                     param = paramr,
@@ -635,25 +623,25 @@ test <- function(mod, restr){
   if('beta' %in% names(modr)) param <- c(param, mod$beta[, 1])
   LM     <- score%*%qr.solve(hess, t(score))
   pv_sc  <- 1 - pchisq(LM, dof)
-  
+
   # Likelihood Ratio test statistic
   LR     <- -2*(modr$loglik - mod$loglik)
   pv_lr  <- 1 - pchisq(LR, dof)
-  
+
   # Wald test statistic
   those <- which(!is.na(restr))
   h     <- (param - restr)[those]
   V     <- mod$vcov[those, those]
   W     <- h%*%qr.solve(V, t(h))
   pv_w  <- 1 - pchisq(W, dof)
-  
+
   test  <- data.frame(stat = c(LM, LR, W),
                       dof  = rep(dof, 3),
                       pv   = c(pv_sc, pv_lr, pv_w))
   rownames(test) <- c("Rao's Score",
                       'Likelihood Ratio',
                       'Wald')
-  
+
   rn <- rn[those]
   for (i in 1:length(those)) {
     r <- paste(rn, restr[those][i], sep=' = ')
@@ -671,4 +659,152 @@ sstars <- function(pv){
                              ifelse(pv > 0.001, '**','***'))))
   if(any(is.na(ss))) ss[which(is.na(ss))]<-''
   return(ss)
+}
+
+# cross product gradient covariance estimation
+opg <- function(mod){
+  # log-likelihood function
+  flik  <- as.character(mod$call[[1]])
+  flik  <- paste(flik, 'likLA', sep = '')
+  
+  # model parameters
+  cmod  <- coef(mod)
+  pars  <- cmod$est.d
+  if ('est.a' %in% names(cmod)) pars <- c(pars, log(cmod$est.a))
+  if ('est.b' %in% names(cmod)) {
+    pars <- c(pars, cmod$est.b)
+    Z    <- mod$linpred
+  } else Z <- NULL
+  X     <- mod$items
+  n     <- nrow(X)
+  J     <- ncol(X)
+  grads <- matrix(NA, nrow = n, ncol = length(pars))
+
+  if(is.null(Z)) for (i in 1:n) grads[i, ] <- gradient(fun = get(flik), param = pars, X = X[i,,drop=FALSE])
+  else           for (i in 1:n) grads[i, ] <- gradient(fun = get(flik), param = pars, X = X[i,,drop=FALSE], Z = Z[i,,drop=FALSE])
+
+  Vpars <- solve(t(grads) %*% grads)
+  
+  # delta method covariances (back-transform log(discrimination))
+  if('est.a' %in% names(cmod)){
+    h      <- rep(1, length(pars))
+  	a_p    <- seq(from = J + 1, length = length(cmod$est.a))
+   	h[a_p] <- exp(pars[a_p])
+  	Vpars  <- outer(h, h)*Vpars
+  }
+	
+  colnames(Vpars) <- rownames(Vpars) <- names(pars)
+  return(Vpars)
+}
+
+# sandwich covariance matrix estimation
+sandwich <- function(mod){
+  ihess    <- solve(hess(mod)) # extracts hessian^{-1}
+  c_opg    <- opg(mod)  # extracts outer_product_gradients^{-1}
+  c_sand   <- ihess %*% c_opg %*% ihess
+  return(solve(c_sand))
+}
+
+# hessian covariance matrix estimation
+hess <- function(mod){
+  # log-likelihood function
+  flik  <- as.character(mod$call[[1]])
+  flik  <- paste(flik, 'likLA', sep = '')
+
+  # model parameters
+  cmod  <- coef(mod)
+  pars  <- cmod$est.d
+  if ('est.a' %in% names(cmod)) pars <- c(pars, log(cmod$est.a))
+  if ('est.b' %in% names(cmod)) {
+    pars <- c(pars, cmod$est.b)
+    Z    <- mod$linpred
+  } else Z <- NULL
+  X     <- mod$items
+  n     <- nrow(X)
+  J     <- ncol(X)
+  if (!is.null(Z)) {
+    Vpars <- hessian(fun = get(flik), param = pars, X = X, Z = Z, fun0 = mod$loglik, fixed = NULL)
+  } else {
+    Vpars <- hessian(fun = get(flik), param = pars, X = X, fun0 = mod$loglik, fixed = NULL)
+  }  
+  Vpars <- solve(Vpars)
+  # delta method covariances (back-transform log(discrimination))
+  if('est.a' %in% names(cmod)){
+    h      <- rep(1, length(pars))
+  	a_p    <- seq(from = J + 1, length = length(cmod$est.a))
+   	h[a_p] <- exp(pars[a_p])
+  	Vpars  <- outer(h, h)*Vpars
+  }
+
+  colnames(Vpars) <- rownames(Vpars) <- names(pars)
+  return(Vpars)
+}
+
+# prepare explanatory variables 
+pev <- function(z, f){
+  # variable clases
+  cl <- unlist(lapply(z,class))
+  
+  # center numeric and integer variables
+  if (any(cl %in% c('numeric', 'integer'))){
+    numint <- which(cl %in% c('numeric', 'integer'))
+    k1     <- length(numint)
+    for (j in 1:k1) z[,numint[j]] <- scale(z[,numint[j]], scale = FALSE)
+  }
+  # character variables as factors
+  if (any(cl == 'character')){
+    char <- which(cl == 'character')
+    k2   <- length(char)
+    for (j in 1:k2) z[,char[j]] <- as.factor(z[,char[j]])
+  }
+  # factor variables coding
+  if (any(cl %in% c('character','factor'))){
+    fctr <- which(cl %in% c('character','factor'))
+    k3   <- length(fctr)
+    for (j in 1:k3) {
+      n_cat <- length(levels(z[,fctr[j]]))
+      contrasts(z[,fctr[j]]) <- contr.sum(n_cat)
+    }
+  }
+  
+  # extract variables from formula
+  mm    <- model.matrix.lm(f, z, na.action = 'na.pass')
+  oldnm <- colnames(mm)
+  
+  # extracts factor names
+  ctr <- attr(mm,'contrasts')
+  
+  # redocify factors (if any)
+  if (length(ctr)>0) {
+  	fctr_nm <- names(ctr)
+  	# recode 'name(category)'
+  	ncat <- names(ctr)
+  	k <- length(ncat)
+  	for (i in 1:2){
+  		ncol    <- grep(ncat[i],colnames(mm))
+  		if (length(ncol)>1) ncol <- ncol[1]
+  		catnum  <- gsub(ncat[i],'',colnames(mm)[ncol])
+  		catname <- rownames(ctr[[i]])[which(ctr[[i]]=='1')]
+  		# finally
+  		colnames(mm)[ncol]<- paste(ncat[i],'(',catname,')',sep='')
+  	}
+  }
+  # check for interactions
+  ints <- grepl(':',colnames(mm))
+  if (any(ints)){
+  	ints_i <- which(ints)
+  	for (i in ints_i){
+  		splt <- unlist(strsplit(colnames(mm)[i],':'))
+  		# substitution
+  		splt   <- sapply(splt, function(x)colnames(mm)[oldnm==x])
+  		# recode 'name(category):name(category)'
+  		colnames(mm)[i] <- paste(splt, collapse=':')
+  	}
+  }
+  # remove intercept
+  if('(Intercept)' %in% colnames(mm)) {
+    icpt <- which(colnames(mm) == '(Intercept)')
+    mm <- mm[,-icpt,drop=FALSE]
+  }
+  return(mm)
 }
