@@ -601,7 +601,7 @@ test <- function(mod, restr){
   if (length(restr) != npar) stop("Wrong length in 'restr'")
 
   # refit the model s.t. restrictions
-  modr   <- update(mod, formula. = f, fixed = restr)
+  modr   <- update(mod, fixed = restr)
   paramr <- modr$coef[, 1]
   if ('beta' %in% names(modr)) paramr <- c(paramr, mod$beta[, 1])
 
@@ -810,4 +810,60 @@ pev <- function(z, f){
     mm <- mm[,-icpt,drop=FALSE]
   }
   return(mm)
+}
+
+# tests linear constraints of the form 'R*pars = b'
+lincon <- function(mod, R, b, cov_type = 'hessian'){
+  if(class(b) == 'numeric') b <- matrix(b, ncol=1)
+  # extract model parameters
+  est <- mod$coef
+  if ('beta' %in% names(mod)) est <- rbind(est, mod$beta) 
+
+  # coefficient names
+  pvnames <- rownames(est)
+  est <- est[,1]
+  
+  # covariance matrix
+  V <- vcov(mod, type = cov_type)
+  
+  # check R, b dimensions
+  if (! 'matrix' %in% class(R)) stop('R must be an Q*p matrix')
+  if (ncol(R) != length(est)) stop('Wrong number of columns in R')
+  if (nrow(R) != nrow(b)) stop('R and/or b incorrectly specified')
+  
+  # Wald statistic
+  Rpb <- R%*%est - b
+  W   <- t(Rpb) %*% solve(R %*% V %*%t(R), Rpb)
+  
+  # degrees of freedom
+  n  <- nrow(mod$items)
+  p  <- length(est)
+  Q  <- nrow(R)
+  out <-data.frame(statistic = W,
+                   dfn = Q,
+                   dfd = n - p,
+                   p.value = 1 - pf(W, Q, n - p))
+  # q imprima el nombre del test y los contrastes de R y b
+  cat('\n')
+  cat('Wald statistic for constraints R*par_vec = b','\n')
+
+  f1 <- function(x){
+    if(x == 1){
+      return('+')
+    } else {
+      if(x == -1) {
+        return('-')
+      } else return(as.character(x))
+    }
+  }
+  for (i in 1:nrow(R)){
+    ri    <- R[i,]
+    those <- pvnames[which(ri != 0)]
+    coefs <- sapply(ri[ri != 0], f1)
+    eq    <- paste(paste(coefs, those, sep = ''), collapse = '')
+    cat(eq, '\n')
+  }
+  cat('\n')
+  print(out)
+  return(out)
 }
