@@ -27,7 +27,7 @@
 
 \details{
   Linear constraints are specified in the form:
-  \deqn{R \times \theta = b}
+  \deqn{R * \theta = b}
   Where R is a matrix of dimensions q*p. The vector b might be specified either as a numeric object or as a one column matrix.
   The p-value is approximated by an F distribution with q and n - p degres of freedom.
 }

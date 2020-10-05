@@ -587,73 +587,6 @@ proflik <- function(mod, alpha = 0.05){
   return(CI)
 }
 
-# test simple restrictions (Id*par_vec = par_value)
-test <- function(mod, restr){
-  param <- mod$coef[, 1]
-  rn    <- rownames(mod$coef)
-  if('beta' %in% names(mod)) {
-    param <- c(param, mod$beta[,1])
-    rn    <- c(rn, rownames(mod$beta))
-  }
-  npar <- length(param)
-
-  # checking restrictions vector
-  if (length(restr) != npar) stop("Wrong length in 'restr'")
-
-  # refit the model s.t. restrictions
-  modr   <- update(mod, fixed = restr)
-  paramr <- modr$coef[, 1]
-  if ('beta' %in% names(modr)) paramr <- c(paramr, mod$beta[, 1])
-
-  # log-likelihood function
-  flik <- as.character(mod$call[[1]])
-  flik <- paste(flik, 'likLA', sep = '')
-
-  # score vector
-  score <- gradient(fun   = get(flik),
-                    param = paramr,
-	                  X     = mod$items,
-	                  fixed = restr*NA)
-  hess  <-  hessian(fun   = get(flik),
-                    param = paramr,
-	                  X     = mod$items,
-	                  fixed = restr*NA)
-  # degrees of freedom
-  dof <- sum(!is.na(restr))
-
-  # Rao test statistic
-  paramr <- modr$coef[, 1]
-  if('beta' %in% names(modr)) param <- c(param, mod$beta[, 1])
-  LM     <- score%*%qr.solve(hess, t(score))
-  pv_sc  <- 1 - pchisq(LM, dof)
-
-  # Likelihood Ratio test statistic
-  LR     <- -2*(modr$loglik - mod$loglik)
-  pv_lr  <- 1 - pchisq(LR, dof)
-
-  # Wald test statistic
-  those <- which(!is.na(restr))
-  h     <- (param - restr)[those]
-  V     <- mod$vcov[those, those]
-  W     <- h%*%qr.solve(V, t(h))
-  pv_w  <- 1 - pchisq(W, dof)
-
-  test  <- data.frame(stat = c(LM, LR, W),
-                      dof  = rep(dof, 3),
-                      pv   = c(pv_sc, pv_lr, pv_w))
-  rownames(test) <- c("Rao's Score",
-                      'Likelihood Ratio',
-                      'Wald')
-
-  rn <- rn[those]
-  for (i in 1:length(those)) {
-    r <- paste(rn, restr[those][i], sep=' = ')
-    cat(r, '\n')
-  }
-  print(format(test, digits = 4))
-  return(test)
-}
-
 # signification stars
 sstars <- function(pv){
   ss <- ifelse(pv > 0.1, '',
@@ -842,7 +775,8 @@ lincon <- function(mod, R, b, cov_type = 'hessian'){
   out <-data.frame(statistic = W,
                    dfn = Q,
                    dfd = n - p,
-                   p.value = 1 - pf(W, Q, n - p))
+                   pv = 1 - pf(W, Q, n - p))
+  colnames(out) <- c('W statistic','df','res.df','Pr(>F)')
   # q imprima el nombre del test y los contrastes de R y b
   cat('\n')
   cat('Wald statistic for constraints R*par_vec = b','\n')
@@ -856,14 +790,73 @@ lincon <- function(mod, R, b, cov_type = 'hessian'){
       } else return(as.character(x))
     }
   }
+  cat('\n')
+  cat('Hypothesis:','\n')
   for (i in 1:nrow(R)){
     ri    <- R[i,]
     those <- pvnames[which(ri != 0)]
     coefs <- sapply(ri[ri != 0], f1)
-    eq    <- paste(paste(coefs, those, sep = ''), collapse = '')
+    eq    <- paste(paste(paste(coefs, those, sep = ''), collapse = ''),b[i],sep=' = ')
     cat(eq, '\n')
   }
   cat('\n')
   print(out)
-  return(out)
+  invisible(out)
+}
+
+# enfore linear constraints on parameter vector
+constrainer <- function(pars, R, b){
+	first <-apply(R,1,function(x)min(which(x!=0)))
+	
+	# set a 'one'
+	ind <- cbind(seq(nrow(R)),first)
+	R1  <- diag(1/R[ind]) %*% R
+	b1  <- diag(1/R[ind]) %*% b
+	
+	# por ultimo habria que obligar a 'pars' a cumplir las restricciones
+	for (i in 1:nrow(R1)){
+		ri1 <- ri <- R1[i,]
+		bi  <- b1[i,]
+		ri1[first[i]]  <- 0
+		pars[first[i]] <- bi - sum(ri1*pars) 
+	}
+	return(pars)
+}
+
+# drop all possible single terms to a model
+drop1.rasch <- function(mod, test = 'LRT'){
+  stopifnot(inherits(object, 'rasch'))
+  if(!'beta' %in% names(mod)) stop("'mod' must have explanatory variables")
+  # extract model formula
+  f  <- mod$call[[3]]
+  xj <- all.vars(f)
+  mods <- vector('list')
+  for (j in 1:length(xj)){
+    fj        <- as.formula(paste('~.-',xj[j],':.',sep=''))
+    mods[[j]] <- update(mod, formula. = fj)
+  }
+  # extraction
+  ll   <- lapply(mods, function(x) x$loglik)
+  npar <- lapply(mods, function(x) ncol(x$linpred))
+  aic  <- lapply(mods, function(x) AIC(x))
+  bic  <- lapply(mods, function(x) BIC(x))
+  
+  # full model
+  npar0 <- ncol(mod$linpred)
+  ll0   <- mod$loglik
+  
+  out <- data.frame(df = npar0 - unlist(npar),
+                    AIC  = unlist(aic),
+                    BIC  = unlist(bic),
+                    LRT  = -2*(unlist(ll) - ll0))
+  out$'Pr(>Chi)' <- 1 - pchisq(out$LRT, out$df)
+  rownames(out) <- xj
+  
+  # output
+  cat('Single term deletions','\n')
+  cat('\n')
+  cat('regression formula','\n')
+  print(f)
+  print(format(out, nsmall = 1, digits = 3))
+  invisible(out)
 }

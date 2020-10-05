@@ -10,7 +10,6 @@ export(sim_rasch)
 export(hessian)
 export(gradient)
 export(ability)
-export(test)
 export(info)
 export(pim)
 export(itemfit)
@@ -25,6 +24,7 @@ importFrom(stats, nlminb,
                   update,
                   qchisq,
                   pt,
+                  pf,
                   rnorm,
                   quantile, 
                   predict,
@@ -61,4 +61,5 @@ S3method(vcov, rasch)
 S3method(residuals, rasch)
 S3method(plot, rasch)
 S3method(update, rasch)
-S3method(predict,rcs)
+S3method(predict, rcs)
+S3method(drop1, rasch)
