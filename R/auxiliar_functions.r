@@ -824,33 +824,46 @@ constrainer <- function(pars, R, b){
 }
 
 # drop all possible single terms to a model
-drop1.rasch <- function(mod, test = 'LRT'){
+drop1.rasch <- function(object, test = 'LRT', ...){
   stopifnot(inherits(object, 'rasch'))
-  if(!'beta' %in% names(mod)) stop("'mod' must have explanatory variables")
+  if(!'beta' %in% names(object)) stop("'object' must have explanatory variables")
   # extract model formula
-  f  <- mod$call[[3]]
+  f  <- object$call[[3]]
   xj <- all.vars(f)
-  mods <- vector('list')
-  for (j in 1:length(xj)){
-    fj        <- as.formula(paste('~.-',xj[j],':.',sep=''))
-    mods[[j]] <- update(mod, formula. = fj)
+  
+  if (test == 'LRT'){
+    mods <- vector('list')
+    for (j in 1:length(xj)){
+      fj        <- as.formula(paste('~.-',xj[j],':.',sep=''))
+      mods[[j]] <- update(object, formula. = fj)
+    }
+    # extraction
+    ll   <- lapply(mods, function(x) x$loglik)
+    npar <- lapply(mods, function(x) ncol(x$linpred))
+    aic  <- lapply(mods, function(x) AIC(x))
+    bic  <- lapply(mods, function(x) BIC(x))
+    
+    # full model
+    npar0 <- ncol(object$linpred)
+    ll0   <- object$loglik
+    
+    out <- data.frame(df = npar0 - unlist(npar),
+                      AIC  = unlist(aic),
+                      BIC  = unlist(bic),
+                      LRT  = -2*(unlist(ll) - ll0))
+    out$'Pr(>Chi)' <- 1 - pchisq(out$LRT, out$df)
+    rownames(out) <- xj
+  } else {
+    # extract model matrix names
+    mm <- colnames(object$linpred)
+    R <- matrix(0, nrow = length(xj), ncol = length(mm))
+    Q <- nrow(R)
+    for (k in 1:Q) {
+      R[k, grep(xj[k], mm)] <- 1
+      wk <- lincon(object, R = R[k, , drop = FALSE], b = 0)
+      # ...
+    }
   }
-  # extraction
-  ll   <- lapply(mods, function(x) x$loglik)
-  npar <- lapply(mods, function(x) ncol(x$linpred))
-  aic  <- lapply(mods, function(x) AIC(x))
-  bic  <- lapply(mods, function(x) BIC(x))
-  
-  # full model
-  npar0 <- ncol(mod$linpred)
-  ll0   <- mod$loglik
-  
-  out <- data.frame(df = npar0 - unlist(npar),
-                    AIC  = unlist(aic),
-                    BIC  = unlist(bic),
-                    LRT  = -2*(unlist(ll) - ll0))
-  out$'Pr(>Chi)' <- 1 - pchisq(out$LRT, out$df)
-  rownames(out) <- xj
   
   # output
   cat('Single term deletions','\n')
@@ -859,4 +872,46 @@ drop1.rasch <- function(mod, test = 'LRT'){
   print(f)
   print(format(out, nsmall = 1, digits = 3))
   invisible(out)
+}
+
+# Cook's distance
+cooksD <- function(mod, cov_type = 'hessian', trace = TRUE){
+  stopifnot(inherits(mod, 'rasch'))
+  # extract parametes
+  b <- mod$coef[,1]
+  if ('beta' %in% names(mod)) {
+    b <- c(b, mod$beta[,1])
+    Z <- mod$linpred
+  } else Z <- NULL
+  # extract covariance matrix
+  Vb <- vcov(mod, type = cov_type)
+  # extract items
+  its <- mod$items
+  n   <- nrow(its)
+  p   <- ncol(its)
+  cd  <- rep(0, n)
+
+  # calculate distances
+  for (i in 1:n){
+    if (is.null(Z)){
+      mod_i  <- update(mod, items = X[-i, ], init = b)
+    } else {
+      mod_i  <- update(mod, items = X[-i, ], z_reg = Z[-i, ], init = b)
+    }
+    b_i <- mod_i$coef[,1]
+    if ('beta' %in% names(mod_i)) b_i <- c(b_i, mod_i$beta[,1])
+    cd[i] <- t(b - b_i)%*%qr.solve(Vb, b - b_i)/p
+    if(trace) cat(paste('deleting observation:',i, sep=' '),'\n')
+  }
+  id <- seq(n)
+  ggplot(data.frame(id, cd),
+         aes(x = id, y = cd)) +
+    geom_point() +
+    geom_segment(x = id, xend = id, y = 0, yend = cd) +
+    xlab('id') + ylab("Cook's distance") +
+    geom_hline(yintercept = 4/n, color = 'tomato') +
+    geom_text(aes(label = ifelse(cd > 4/n, id,'')),
+              hjust = 0,
+              vjust = 0)
+  invisible(cd)  
 }
