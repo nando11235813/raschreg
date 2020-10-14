@@ -102,8 +102,8 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
   if ('alpha' %in% pnames){
     cat('\n')
     cat('Discrimination parameters','\n')
-    a  <- round(est[which(pnames == 'alpha'),],3)
-    if(any(a[, 4] <= 0.001, na.rm = TRUE)) a[a[, 4] == 0,4]<-'<0.001'
+    a      <- round(est[which(pnames == 'alpha'),],3)
+    a[, 4] <- pvtol(a[, 4], 0.001)
     ss <- sstars(a[,4])
     names(a) <- c('Estimate',
                   'Std. Error',
@@ -119,7 +119,7 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
   cat('\n')
   cat('Difficulty parameters','\n')
   d  <- round(est[which(pnames == 'delta'),],3)
-  if(any(d[,4] <= 0.001, na.rm = TRUE)) d[which(d[,4] <= 0.001), 4] <- '<0.001'
+  d[, 4] <- pvtol(d[, 4], 0.001)
   ss <- sstars(d[, 4])
   names(d) <- c('Estimate',
                 'Std. Error',
@@ -138,7 +138,7 @@ summary.rasch <- function(object, cov_type = 'hessian', correlation = FALSE, sig
     cat('___', '\n')
     cat('Regression parameters', '\n')
     b <- round(est[which(pnames == 'beta'),],3)
-    if(any(b[, 4] <= 0.001, na.rm = TRUE)) b[b[, 4] == 0,4] <- '<0.001'
+    b[, 4] <- pvtol(b[, 4], 0.001)
     ss <- sstars(b[, 4])
     names(b)<-c('Estimate',
                  'Std. Error',
@@ -824,11 +824,15 @@ constrainer <- function(pars, R, b){
 }
 
 # drop all possible single terms to a model
-drop1.rasch <- function(object, test = 'LRT', ...){
+drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian', ...){
   stopifnot(inherits(object, 'rasch'))
-  if(!'beta' %in% names(object)) stop("'object' must have explanatory variables")
+  if (!'beta' %in% names(object)) stop("'object' must have explanatory variables")
   # extract model formula
-  f  <- object$call[[3]]
+  if (is.null(scope)) {
+    f <- object$call[[3]]
+  } else {
+    f <- scope
+  }
   xj <- all.vars(f)
   
   if (test == 'LRT'){
@@ -856,13 +860,31 @@ drop1.rasch <- function(object, test = 'LRT', ...){
   } else {
     # extract model matrix names
     mm <- colnames(object$linpred)
-    R <- matrix(0, nrow = length(xj), ncol = length(mm))
-    Q <- nrow(R)
+    r  <- matrix(0, ncol = length(mm)) 
+    # number of irt parameters
+    np <- nrow(object$coef)
+    # covariance matrix (regession effects)
+    V  <- vcov(object, type = cov_type)
+    V1 <- solve(V[-seq(np),-seq(np)])
+    # regression parameters
+    beta <- object$beta[,1]
+    Q   <- length(xj)
+    wk  <- pk <- dfn <- rep(0, Q)
+    dfd <- nrow(object$items) - (np + length(mm))
     for (k in 1:Q) {
-      R[k, grep(xj[k], mm)] <- 1
-      wk <- lincon(object, R = R[k, , drop = FALSE], b = 0)
-      # ...
+      r[1, grep(xj[k], mm)] <- 1
+      dfn[k] <- sum(r)
+      rb     <- r%*%beta
+      wk[k]  <- t(rb) %*% (r %*% V1 %*% t(r)) %*% rb
+      pk[k]  <- 1 - pf(wk[k], 1, dfd)
+      # reset r
+      r  <- matrix(0, ncol = length(mm))
     }
+    out <- data.frame(dfn = as.integer(dfn),
+                      dfd = as.integer(dfd),
+                      W   = wk)
+    out$'Pr(>F)'  <- pk
+    rownames(out) <- xj
   }
   
   # output
@@ -894,9 +916,9 @@ cooksD <- function(mod, cov_type = 'hessian', trace = TRUE){
   # calculate distances
   for (i in 1:n){
     if (is.null(Z)){
-      mod_i  <- update(mod, items = X[-i, ], init = b)
+      mod_i  <- update(mod, items = its[-i, ], init = b)
     } else {
-      mod_i  <- update(mod, items = X[-i, ], z_reg = Z[-i, ], init = b)
+      mod_i  <- update(mod, items = its[-i, ], z_reg = Z[-i, ], init = b)
     }
     b_i <- mod_i$coef[,1]
     if ('beta' %in% names(mod_i)) b_i <- c(b_i, mod_i$beta[,1])
@@ -904,14 +926,26 @@ cooksD <- function(mod, cov_type = 'hessian', trace = TRUE){
     if(trace) cat(paste('deleting observation:',i, sep=' '),'\n')
   }
   id <- seq(n)
-  ggplot(data.frame(id, cd),
-         aes(x = id, y = cd)) +
-    geom_point() +
-    geom_segment(x = id, xend = id, y = 0, yend = cd) +
-    xlab('id') + ylab("Cook's distance") +
-    geom_hline(yintercept = 4/n, color = 'tomato') +
-    geom_text(aes(label = ifelse(cd > 4/n, id,'')),
-              hjust = 0,
-              vjust = 0)
+  D <- ggplot(data.frame(id, cd),
+             aes(x = id, y = cd)) +
+        geom_point() +
+        geom_segment(x = id, xend = id, y = 0, yend = cd) +
+        xlab('id') + ylab("Cook's distance") +
+        geom_hline(yintercept = 4/n, color = 'tomato') +
+        geom_text(aes(label = ifelse(cd > 4/n, id,'')),
+                  hjust = 0, vjust = 0) +
+        ylim(0,max(cd))
+  print(D)
   invisible(cd)  
+}
+
+# formting small p-values
+pv_tol <- function(pv, tol = 0.01){
+  if(any(pv <= tol, na.rm = TRUE)) pv[pv < tol]<-paste('<',tol,sep='')
+  return(pv)
+}
+
+# backawrd variable selection
+backward <- function(mod, alpha = 0.05, test = 'LRT'){
+  
 }
