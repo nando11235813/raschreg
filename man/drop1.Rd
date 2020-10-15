@@ -8,14 +8,20 @@
   \code{drop1} method for class \code{"rasch"}.
 }
 \usage{
-  \method{drop1}{rasch}(object, test = 'LRT', ...)
+  \method{drop1}{rasch}(object, scope = NULL, test = 'LRT', cov_type = 'hessian', ...)
 }
 \arguments{
   \item{object}{
     A fitted rasch model.
   }
+  \item{scope}{
+    A formula giving the terms to be considered for dropping.
+  }
   \item{test}{
-    a character string, matchiing one of \emph{LRT} o \emph{Wald}. Currently only \emph{LRT} is allowed.
+    A character string, matchiing one of \emph{LRT} o \emph{Wald}.
+  }
+  \item{cov_type}{
+    A character indicating which covariance matrix estimation is to be used. Possible choices are 'hessian', 'opg' and 'sandwich'.
   }
   \item{...}{
     Additional arguments affecting the summary produced.

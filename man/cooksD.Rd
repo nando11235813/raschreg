@@ -35,10 +35,13 @@
 }
 
 \examples{
-n   <- 100
-J   <- 7
-X   <- sim_rasch(n,J)
+n   <- 50
+J   <- 15
+X   <- sim_rasch(n, J)
+# alter 10th observation
+X[10, ] <- rep(c(0,1),c(7,8))
+# estimate model
 mod <- rasch(X)
-# test equality of delta_1 and delta_2.
+# Cook's distance 
 cooksD(mod)
 }

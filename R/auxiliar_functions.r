@@ -471,13 +471,12 @@ anova.rasch<-function(object, ..., ref = 1){
   df   <- c(NA,  npars[-ref] - npars[ref])
   if (any(df[-1]<0)) warning('Check that the reference model is the more restricted')
   pv   <- c(1 - pchisq(LRT, df))
-  if (any(pv<0.001)) pv[pv<0.001] <- '<0.001'
   test <- data.frame(logLik  = lliks,
                      AIC     = AIC(object, ...)[, 2],
                      BIC     = BIC(object, ...)[, 2],
                      LRT     = LRT,
                      df      = df,
-                     p.value = pv)
+                     p.value = pvtol(pv, 0.001))
   alcall  <- as.list(match.call(expand.dots=TRUE))
   rn      <- as.character(lapply(alcall,function(x)x))[-1] 
   rownames(test) <- rn
@@ -829,7 +828,7 @@ drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian'
   if (!'beta' %in% names(object)) stop("'object' must have explanatory variables")
   # extract model formula
   if (is.null(scope)) {
-    f <- object$call[[3]]
+    f <- as.formula(paste('~', paste(colnames(object$linpred), collapse = '+')))
   } else {
     f <- scope
   }
@@ -838,7 +837,7 @@ drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian'
   if (test == 'LRT'){
     mods <- vector('list')
     for (j in 1:length(xj)){
-      fj        <- as.formula(paste('~.-',xj[j],':.',sep=''))
+      fj        <- as.formula(paste('~.-', xj[j], ':.', sep = ''))
       mods[[j]] <- update(object, formula. = fj)
     }
     # extraction
@@ -855,7 +854,7 @@ drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian'
                       AIC  = unlist(aic),
                       BIC  = unlist(bic),
                       LRT  = -2*(unlist(ll) - ll0))
-    out$'Pr(>Chi)' <- 1 - pchisq(out$LRT, out$df)
+    out$'Pr(>Chi)' <- pvtol(1 - pchisq(out$LRT, out$df), 0.001)
     rownames(out) <- xj
   } else {
     # extract model matrix names
@@ -883,16 +882,9 @@ drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian'
     out <- data.frame(dfn = as.integer(dfn),
                       dfd = as.integer(dfd),
                       W   = wk)
-    out$'Pr(>F)'  <- pk
+    out$'Pr(>F)'  <- pvtol(pk, 0.001)
     rownames(out) <- xj
   }
-  
-  # output
-  cat('Single term deletions','\n')
-  cat('\n')
-  cat('regression formula','\n')
-  print(f)
-  print(format(out, nsmall = 1, digits = 3))
   invisible(out)
 }
 
@@ -940,12 +932,37 @@ cooksD <- function(mod, cov_type = 'hessian', trace = TRUE){
 }
 
 # formting small p-values
-pv_tol <- function(pv, tol = 0.01){
-  if(any(pv <= tol, na.rm = TRUE)) pv[pv < tol]<-paste('<',tol,sep='')
+pvtol <- function(pv, tol = 0.01, digits = 3){
+  pv <- round(pv, digits)
+  if(any(pv <= tol, na.rm = TRUE)) {
+    pv[pv < tol] <- paste('<', tol, sep = '')
+  }
   return(pv)
 }
 
 # backawrd variable selection
-backward <- function(mod, alpha = 0.05, test = 'LRT'){
+backward <- function(mod, alpha = 0.05, test = 'LRT', cov_type = 'hessian'){
+  f  <- as.formula(paste('~', paste(colnames(mod$linpred), collapse = '+')))
+  xj <- all.vars(f)
+  k  <- length(xj)
   
+  for (j in 1:k){
+    cat('----------------','\n')
+    cat(paste('step',j,sep=':'),'\n')
+    cat('----------------','\n')
+    d_i <- drop1(mod, test = test, cov_type = cov_type)
+    pv  <- 1 - ifelse (test == rep('LRT',nrow(d_i)),
+                       pchisq(d_i$LRT, d_i$df),
+                       pf(d_i$W, d_i$dfn, d_i$dfd))
+    if (all(pv < alpha)) break else {
+      pvmax <- which.max(pv)
+      x_out <- rownames(d_i)[pvmax]
+      f_out <- as.formula(paste('~.-',x_out))
+      mod   <- update(mod, f_reg = f_out)
+      text1 <- paste('Variable exiting the model : ', x_out, sep = '')
+      text2 <- paste(text1,' (p-value: ',pvtol(pv[pvmax],0.001),')',sep='')
+      cat(text2,'\n')
+    }
+  }
+  invisible(mod)
 }

@@ -17,6 +17,7 @@ export(forest)
 export(rcs)
 export(lincon)
 export(cooksD)
+export(backward)
 importFrom(Rcpp, evalCpp)
 importFrom(stats, nlminb,
                   optimize,
