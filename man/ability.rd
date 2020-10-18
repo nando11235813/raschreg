@@ -1,6 +1,5 @@
 \name{ability}
 \alias{ability}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
  Person Ability Estimation
 }
@@ -8,31 +7,62 @@
   Prediction of person abilities from a Rasch (regression) model.
 }
 \usage{
-ability(mod, type = 'lord')
+ability(mod, type = 'wle', R = 100)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{mod}{
     Fitted Rasch (regression) model.
   }
   \item{type}{
-    A character string. If \code{'lord'} the \code{MAPE} estimator is bias-corrected according to Lord's procedure. If \code{'MAPE'} the posterior (approximated) likelihood is maximized. Default to \code{'lord'}.
+    A character string. Possible values are \code{eap} (Expected a posteriori), \code{bme} (Bayesian modal estimation), \code{mle} (Maximum likellihood estimation) and \code{wle} (Weighted likelihood estimation). Default to \code{'wle'}.
+  }
+  \item{R}{
+  A numeric value indicating the number of simulations used to approximate \code{theta} when type \code{eap} is selected. Default is 100.
   }
 }
 \details{
-Abilities are estimated as the mode of the posterior distribution (MAP) of abilities given the items and parameter estimates. Alternativelly, this estimates could be corrected using Lord's procedure.
-}
+Abilities are estimated as follows.
+\itemize{}
+\item \code{eap}. eqn{\theta} es estimated by approximating:
+  d\eqn{\frac{\theta P(Y=y|\theta)f(\theta)d\theta}{\int P(Y=y|\theta)f(\theta)d\theta}}
+  R values are simulated from \eqn{f(\theta)} and the quotient is approximated by:
+  \deqn{\frac{\sum_j \theta_j P(Y=y|\theta_j)}{\sum_j P(Y=y|\theta_j)}}
+
+\item \code{bme}. \eqn{\theta} es estimated as the solution of:
+  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))} - \theta = 0}
+
+\item \code{mle} \eqn{\theta} es estimated as the solution of:
+  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))}  = 0}}
+\item{wle}{\eqn{\theta} es estimated as the solution of:
+  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))} + \frac{J(\theta)}{2I(\theta)} = 0}}
+
 \value{
-A data.frame containing a single column with the estimated abilities.
+A numeric containing a single column with the estimated abilities.
 }
 
 \author{
   Fernando Massa, \email{fmassa@iesta.edu.uy}
 }
+
+\references{
+  \insertRef{warm1989}{raschreg}
+  \insertRef{magis2016}{raschreg}
+}
+
 \examples{
-n<-100
-J<-7
-X<-sim_rasch(n,J)
-mod<-rasch(X)
-ability(mod)
+n <- 100
+J <- 7
+x <- sim_rasch(n, J, ability = TRUE)
+X <- x[, 1:J]
+ab <- x[,J+1]
+mod <- rasch(X)
+
+# ability estimation
+ab_wle <- ability(mod, type = 'wle')
+ab_mle <- ability(mod, type = 'mle')
+ab_bme <- ability(mod, type = 'bme')
+ab_eap <- ability(mod, type = 'eap')
+
+# comparison
+cor(cbind(ab, ab_wle, ab_mle, ab_bme, ab_eap))
 }

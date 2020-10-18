@@ -333,55 +333,6 @@ gradient <- function(fun, param, ..., fun0 = NULL){
   return(grad)
 }
 
-# ability
-ability <- function(mod, type = 'lord'){
- 	stopifnot(inherits(mod, 'rasch'))
-  pnames  <- unlist(lapply(strsplit(rownames(mod$coef),'_'), function(x)x[1]))
-  pvnames <- rownames(mod$coef)
-  J <- ncol(mod$items)
-	if ('alpha' %in% pnames){
-	  alpha    <- mod$coef[which(pnames == 'alpha'), 1]
-	  mod$coef <- mod$coef[-which(pnames == 'alpha'),]
-	  if(length(alpha)== 1) alpha <- rep(alpha, J)
-	} else alpha <- rep(1, J)
-	if ('gamma' %in% pnames){
-	  pg       <- mod$coef[which(pnames == 'gamma'), 1]
-	  mod$coef <- mod$coef[-which(pnames == 'gamma'), ]
-	} else pg  <-rep(0, J)
-  delta <- mod$coef[, 1]
-	X     <- mod$items
-	Z     <- mod$linpred
-	# b max
-	if ('beta' %in% names(mod)){
-	  J    <- length(delta)
-	  beta <- mod$beta[, 1]
-	  bmax <- apply(data.frame(X, Z), 1,
-	                function(rowi)optimize(huc,
-	                                       interval = c(-4, 4),
-	                                       x = rowi[seq(J)],
-	                                       d = delta,
-	                                       a = alpha,
-	                                       beta = beta,
-	                                       z = rowi[-seq(J)],
-	                                       tol = 1e-4 ,
-	                                       maximum=TRUE)$maximum)
-	} else {
-	  bmax <- apply(X, 1, function(rowi)optimize(hbc,
-	                                         interval = c(-4, 4),
-	                                         x = rowi,
-	                                         a = alpha,
-	                                         d = delta,
-	                                         tol = 1e-4,
-	                                         maximum = TRUE)$maximum)
-	  }
-	abty <- data.frame(theta = bmax)
-	if (type=='lord'){
-	  abty$bias   <- bias(mod, theta = abty$theta)
-	  abty$thetac <- abty$theta + abty$bias
-	}
-	return(abty)
-}
-
 # bias
 bias <- function(mod, theta){
   abs   <- info(mod, theta = theta, plot = FALSE)
@@ -941,7 +892,8 @@ pvtol <- function(pv, tol = 0.01, digits = 3){
 }
 
 # backawrd variable selection
-backward <- function(mod, alpha = 0.05, test = 'LRT', cov_type = 'hessian'){
+backward <- function(mod, level = 0.05, test = 'LRT', cov_type = 'hessian'){
+  stopifnot(inherits(mod, 'rasch'))
   f  <- as.formula(paste('~', paste(colnames(mod$linpred), collapse = '+')))
   xj <- all.vars(f)
   k  <- length(xj)
@@ -965,4 +917,134 @@ backward <- function(mod, alpha = 0.05, test = 'LRT', cov_type = 'hessian'){
     }
   }
   invisible(mod)
+}
+
+# EAP
+eap_ab <- function(mod, R = 100){
+  cmod <- coef(mod)
+  dif  <- cmod$est.d
+  J    <- length(dif)
+  alpha <- cmod$est.a
+  if (is.null(alpha)) alpha <- rep(1, J) else {
+    if(length(alpha) == 1) alpha <- rep(alpha, J)
+  }
+
+  PYy <- function(theta, y, d, a = NULL){
+    J<-length(d)
+    if (is.null(a)) a<-rep(1, J)
+    eta_j <- a*(theta - d)
+    exp(sum(y*eta_j) - sum(log(1 + exp(eta_j))))
+  }
+
+  if ('beta' %in% names(mod)){
+    mu <- mod$linpred%*%mod$beta[,1]
+  } else mu  <- rep(0, n)
+  
+  X <- mod$items
+  abs <- rnorm(R, mean = mu)
+  ab_hat <- rep(NA, n)
+  for (i in 1:n){
+    den <- mean(sapply(abs, function(tita)PYy(tita,X[i,],dif,alpha)))
+    num <- mean(sapply(abs, function(tita)tita*PYy(tita,X[i,],dif,alpha)))
+    ab_hat[i] <- num/den
+  }
+  return(ab_hat)
+}
+
+# MLE
+mle_ab <- function(mod){
+  cmod <- coef(mod)
+  dif  <- cmod$est.d
+  J    <- length(dif)
+  alpha <- cmod$est.a
+  if (is.null(alpha)) alpha <- rep(1, J) else {
+    if(length(alpha) == 1) alpha <- rep(alpha, J)
+  }
+  X <- mod$items
+  ab_hat <- rep(NA, n)
+  Pj <- function(theta, a_j, d_j){
+    eta_j <- a_j*(theta - d_j)
+    exp(eta_j)/(1 + exp(eta_j))
+  }
+  zero <- function(theta, dif, alpha, x){
+    sum(alpha*(x - Pj(theta, alpha, dif)))
+  }
+  for (i in 1:n){
+    if (sum(X[i,]) %in% c(0, J)) next
+    ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
+                         x = X[i,], alpha = alpha, dif = dif)$root
+  }
+  return(ab_hat) 
+}
+
+# BME
+bme_ab <- function(mod){
+  cmod <- coef(mod)
+  dif  <- cmod$est.d
+  J    <- length(dif)
+  alpha <- cmod$est.a
+  
+  if (is.null(alpha)) alpha <- rep(1, J) else {
+    if(length(alpha) == 1) alpha <- rep(alpha, J)
+  }
+  
+  if ('beta' %in% names(mod)){
+    mu <- mod$linpred%*%mod$beta[,1]
+  } else mu  <- rep(0, n)
+  
+  X <- mod$items
+  ab_hat <- rep(NA, n)
+  Pj <- function(theta, a_j, d_j){
+    eta_j <- a_j*(theta - d_j)
+    exp(eta_j)/(1 + exp(eta_j))
+  }
+  zero <- function(theta, dif, alpha, x, mu_i){
+    sum(alpha*(x - Pj(theta, alpha, dif))) - (theta - mu_i)
+  }
+  for (i in 1:n){
+    ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
+                         x = X[i, ], alpha = alpha, dif = dif, mu_i = mu[i])$root
+  }
+  return(ab_hat) 
+}
+
+# WLE
+wle_ab <- function(mod){
+  cmod <- coef(mod)
+  dif  <- cmod$est.d
+  J    <- length(dif)
+  alpha <- cmod$est.a
+  
+  if (is.null(alpha)) alpha <- rep(1, J) else {
+    if(length(alpha) == 1) alpha <- rep(alpha, J)
+  }
+  
+  X <- mod$items
+  ab_hat <- rep(NA, n)
+  Pj <- function(theta, a_j, d_j){
+    eta_j <- a_j*(theta - d_j)
+    exp(eta_j)/(1 + exp(eta_j))
+  }
+  zero <- function(theta, dif, alpha, x){
+    pj <- Pj(theta, alpha, dif)
+    I  <- sum((alpha^2)*pj*(1 - pj))
+    j  <- sum((alpha^2)*pj*(1 - pj)*(1 - 2*pj))
+    sum(alpha*(x - pj)) + 0.5*j/I
+  }
+  for (i in 1:n){
+    ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
+                         x = X[i, ], alpha = alpha, dif = dif)$root
+  }
+  return(ab_hat) 
+}
+
+# ability estimation
+ability <- function(mod, type = 'wle', R = 100){
+  stopifnot(inherits(mod, 'rasch'))
+  ab <- switch(type,
+               'mle' = mle_ab(mod),
+               'bme' = bme_ab(mod),
+               'wle' = wle_ab(mod),
+               'eap' = eap_ab(mod))
+  return(ab)
 }
