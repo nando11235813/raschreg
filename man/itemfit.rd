@@ -8,7 +8,7 @@
   Plots fir of a specified item.
 }
 \usage{
-  itemfit(mod, item, xlim = c(-3, 3), col = 'tomato', main = NULL)
+  itemfit(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato', main = NULL)
 }
 \arguments{
   \item{mod}{
@@ -16,6 +16,9 @@
   }
   \item{item}{
     Character. Indicates which item fit is to be assessed.
+  }
+  \item{ab_type}{
+    Character. Type of ability estimation procedure. Default to \code{wle}.
   }
   \item{xlim}{
     Range of \emph{theta} values over which to plot ICC. Default is c(-3,3).

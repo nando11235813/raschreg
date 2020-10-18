@@ -22,9 +22,9 @@ ability(mod, type = 'wle', R = 100)
 }
 \details{
 Abilities are estimated as follows.
-\itemize{}
-\item \code{eap}. eqn{\theta} es estimated by approximating:
-  d\eqn{\frac{\theta P(Y=y|\theta)f(\theta)d\theta}{\int P(Y=y|\theta)f(\theta)d\theta}}
+\itemize{
+\item \code{eap}. \eqn{\theta} es estimated by approximating:
+  \deqn{\frac{\theta P(Y=y|\theta)f(\theta)d\theta}{\int P(Y=y|\theta)f(\theta)d\theta}}
   R values are simulated from \eqn{f(\theta)} and the quotient is approximated by:
   \deqn{\frac{\sum_j \theta_j P(Y=y|\theta_j)}{\sum_j P(Y=y|\theta_j)}}
 
@@ -32,9 +32,11 @@ Abilities are estimated as follows.
   \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))} - \theta = 0}
 
 \item \code{mle} \eqn{\theta} es estimated as the solution of:
-  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))}  = 0}}
-\item{wle}{\eqn{\theta} es estimated as the solution of:
-  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))} + \frac{J(\theta)}{2I(\theta)} = 0}}
+  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))}  = 0}
+
+\item{wle}\eqn{\theta} es estimated as the solution of:
+  \deqn{\sum_j (x_j - P_j(\theta))\frac{P^{'}(\theta)}{P(\theta)(1-P(\theta))} + \frac{J(\theta)}{2I(\theta)} = 0}
+}}
 
 \value{
 A numeric containing a single column with the estimated abilities.

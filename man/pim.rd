@@ -8,11 +8,14 @@
   Plots the person-item map of a fitted Rasch (regression) model.
 }
 \usage{
-  pim(mod, main = NULL)
+  pim(mod, ab_type = 'wle', main = NULL)
 }
 \arguments{
   \item{mod}{
     Fitted Rasch (regression) model whose person-item map is to be ploted.
+  }
+  \item{ab_type}{
+    Character. Type of ability estimation procedure. Default to \code{wle}.
   }
   \item{main}{
     A main title for the plot.

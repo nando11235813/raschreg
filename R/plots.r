@@ -143,15 +143,14 @@ info <- function(mod, theta = NULL, item = NULL, main_item = NULL, main_total = 
 }
 
 # Person Item Map
-pim <- function(mod, main = NULL){
+pim <- function(mod, ab_type = 'wle', main = NULL){
   stopifnot(inherits(mod, 'rasch'))
   cd <- coef(mod)
   d  <- cd$est.d
   J  <- ncol(mod$items)
   
   # ability precition
-  theta <- ability(mod)
-  theta <- theta[, ncol(theta)]
+  theta <- ability(mod, type = ab_type)
   
   items <- colnames(mod$items)
   tab_theta <- table(round(theta,3))
@@ -284,15 +283,15 @@ forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_re
 }
 
 # plotfit
-itemfit <- function(mod, item, xlim = c(-3, 3), col = 'tomato', main = NULL){
+itemfit <- function(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato', main = NULL){
   est  <- coef(mod)
   delta <- unlist(est$est.d)
   J <- length(delta)
   if('est.a' %in% names(est)) alpha <- est$est.a else alpha <-rep(1, J)
   
   # ability
-  lv <- ability(mod)
-  lv <- round(lv[,'thetac'],3)
+  lv <- ability(mod, type = ab_type)
+  lv <- round(lv, 3)
   
   its    <- as.data.frame(mod$items)
   its$lv <- lv
