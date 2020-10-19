@@ -333,26 +333,6 @@ gradient <- function(fun, param, ..., fun0 = NULL){
   return(grad)
 }
 
-# bias
-bias <- function(mod, theta){
-  abs   <- info(mod, theta = theta, plot = FALSE)
-  k     <- length(theta)
-  J     <- ncol(abs) - 2
-  b     <- rep(0, k)
-  coefs <- coef(mod)
-  delta <- coefs$est.d
-  alpha <- coefs$est.a
-  if (is.null(alpha)) alpha <- rep(1, J) else {
-    if(length(alpha) == 1) alpha <- rep(alpha, J)
-  }
-  
-  for (i in 1:k){
-    probs <- 1/(1+exp(-(alpha*(abs[i, 'theta'] - delta))))
-    b[i]  <- sum(alpha*abs[i, 2:(J + 1)]*(probs - 0.5))/(abs[i, 'Total']^2)
-  }
-  return(b)
-}
-
 # restricted cubic splines
 rcs<-function(x, m = NULL, knots = NULL, scale = TRUE){
 	if(is.null(knots)) {
@@ -845,15 +825,19 @@ cooksD <- function(mod, cov_type = 'hessian', trace = TRUE){
   # extract parametes
   b <- mod$coef[,1]
   if ('beta' %in% names(mod)) {
-    b <- c(b, mod$beta[,1])
-    Z <- mod$linpred
-  } else Z <- NULL
+    b  <- c(b, mod$beta[,1])
+    Z  <- mod$linpred
+    pz <- ncol(Z)
+  } else {
+    Z  <- NULL
+    pz <- 0
+  }
   # extract covariance matrix
   Vb <- vcov(mod, type = cov_type)
   # extract items
   its <- mod$items
   n   <- nrow(its)
-  p   <- ncol(its)
+  p   <- ncol(its) + pz
   cd  <- rep(0, n)
 
   # calculate distances
@@ -866,7 +850,7 @@ cooksD <- function(mod, cov_type = 'hessian', trace = TRUE){
     b_i <- mod_i$coef[,1]
     if ('beta' %in% names(mod_i)) b_i <- c(b_i, mod_i$beta[,1])
     cd[i] <- t(b - b_i)%*%qr.solve(Vb, b - b_i)/p
-    if(trace) cat(paste('deleting observation:',i, sep=' '),'\n')
+    if(trace == TRUE) cat(paste('deleting observation:',i, sep=' '),'\n')
   }
   id <- seq(n)
   D <- ggplot(data.frame(id, cd),
@@ -903,22 +887,28 @@ backward <- function(mod, level = 0.05, test = 'LRT', cov_type = 'hessian'){
     cat(paste('step',j,sep=':'),'\n')
     cat('----------------','\n')
     d_i <- drop1(mod, test = test, cov_type = cov_type)
-    pv  <- 1 - ifelse (test == rep('LRT',nrow(d_i)),
+    pv  <- 1 - ifelse (test == rep('LRT', nrow(d_i)),
                        pchisq(d_i$LRT, d_i$df),
                        pf(d_i$W, d_i$dfn, d_i$dfd))
     if (all(pv < alpha)) break else {
       pvmax <- which.max(pv)
       x_out <- rownames(d_i)[pvmax]
-      f_out <- as.formula(paste('~.-',x_out))
+      f_out <- as.formula(paste('~.-', x_out))
       mod   <- update(mod, f_reg = f_out)
       text1 <- paste('Variable exiting the model : ', x_out, sep = '')
       text2 <- paste(text1,' (p-value: ',pvtol(pv[pvmax],0.001),')',sep='')
-      cat(text2,'\n')
+      cat(text2, '\n')
     }
   }
   invisible(mod)
 }
 
+# P(Y=y|theta)
+Pj <- function(theta, a_j, d_j){
+  eta_j <- a_j*(theta - d_j)
+  exp(eta_j)/(1 + exp(eta_j))
+}
+  
 # EAP
 eap_ab <- function(mod, R = 100){
   cmod <- coef(mod)
@@ -936,11 +926,13 @@ eap_ab <- function(mod, R = 100){
     exp(sum(y*eta_j) - sum(log(1 + exp(eta_j))))
   }
 
+  X <- mod$items
+  n <- nrow(X)
+  
   if ('beta' %in% names(mod)){
     mu <- mod$linpred%*%mod$beta[,1]
   } else mu  <- rep(0, n)
-  
-  X <- mod$items
+
   abs <- rnorm(R, mean = mu)
   ab_hat <- rep(NA, n)
   for (i in 1:n){
@@ -961,11 +953,9 @@ mle_ab <- function(mod){
     if(length(alpha) == 1) alpha <- rep(alpha, J)
   }
   X <- mod$items
+  n <- nrow(X)
   ab_hat <- rep(NA, n)
-  Pj <- function(theta, a_j, d_j){
-    eta_j <- a_j*(theta - d_j)
-    exp(eta_j)/(1 + exp(eta_j))
-  }
+  
   zero <- function(theta, dif, alpha, x){
     sum(alpha*(x - Pj(theta, alpha, dif)))
   }
@@ -974,7 +964,7 @@ mle_ab <- function(mod){
     ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
                          x = X[i,], alpha = alpha, dif = dif)$root
   }
-  return(ab_hat) 
+  return(ab_hat)
 }
 
 # BME
@@ -983,21 +973,20 @@ bme_ab <- function(mod){
   dif  <- cmod$est.d
   J    <- length(dif)
   alpha <- cmod$est.a
-  
+
   if (is.null(alpha)) alpha <- rep(1, J) else {
     if(length(alpha) == 1) alpha <- rep(alpha, J)
   }
+
+  X <- mod$items
+  n <- nrow(X)
   
   if ('beta' %in% names(mod)){
     mu <- mod$linpred%*%mod$beta[,1]
   } else mu  <- rep(0, n)
-  
-  X <- mod$items
+
   ab_hat <- rep(NA, n)
-  Pj <- function(theta, a_j, d_j){
-    eta_j <- a_j*(theta - d_j)
-    exp(eta_j)/(1 + exp(eta_j))
-  }
+
   zero <- function(theta, dif, alpha, x, mu_i){
     sum(alpha*(x - Pj(theta, alpha, dif))) - (theta - mu_i)
   }
@@ -1005,7 +994,7 @@ bme_ab <- function(mod){
     ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
                          x = X[i, ], alpha = alpha, dif = dif, mu_i = mu[i])$root
   }
-  return(ab_hat) 
+  return(ab_hat)
 }
 
 # WLE
@@ -1014,17 +1003,16 @@ wle_ab <- function(mod){
   dif  <- cmod$est.d
   J    <- length(dif)
   alpha <- cmod$est.a
-  
+
   if (is.null(alpha)) alpha <- rep(1, J) else {
     if(length(alpha) == 1) alpha <- rep(alpha, J)
   }
-  
+
   X <- mod$items
+  n <- nrow(X)
+  
   ab_hat <- rep(NA, n)
-  Pj <- function(theta, a_j, d_j){
-    eta_j <- a_j*(theta - d_j)
-    exp(eta_j)/(1 + exp(eta_j))
-  }
+
   zero <- function(theta, dif, alpha, x){
     pj <- Pj(theta, alpha, dif)
     I  <- sum((alpha^2)*pj*(1 - pj))
@@ -1035,7 +1023,7 @@ wle_ab <- function(mod){
     ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
                          x = X[i, ], alpha = alpha, dif = dif)$root
   }
-  return(ab_hat) 
+  return(ab_hat)
 }
 
 # ability estimation
@@ -1047,4 +1035,60 @@ ability <- function(mod, type = 'wle', R = 100){
                'wle' = wle_ab(mod),
                'eap' = eap_ab(mod))
   return(ab)
+}
+
+# person fit statistic
+pfs <- function(mod, level = 0.05, ab_type = 'wle', type = 'snijder'){
+  stopifnot(inherits(mod, 'rasch'))
+  cmod  <- coef(mod)
+  delta <- cmod$est.d
+  J     <- length(delta)
+  alpha <- cmod$est.a
+  X     <- mod$items
+  n     <- nrow(X)
+  
+  if (is.null(alpha)) alpha <- rep(1, J) else {
+    if(length(alpha) == 1) alpha <- rep(alpha, J)
+  }
+  
+  # ability estimation
+  theta_hat <- ability(mod, type = ab_type)
+  
+  #P(theta) calculation
+  Pt <- t(sapply(theta_hat, function(x)Pj(x, alpha, delta)))
+  
+  # weights calculation
+  wts <- log(Pt/(1-Pt))
+  
+  # weights correction
+  if (type == 'snijder'){
+    rj  <- matrix(alpha, nrow = n, ncol = J, byrow = TRUE)
+    pt1 <- Pt*(1-Pt)*rj
+    num <- pt1*wts
+    den <- pt1*rj
+    cn  <- apply(num, 1, sum)/apply(den, 1, sum)
+    wts <- wts - cn*rj
+  }
+  
+  # statistics
+  Wn  <- apply((X - Pt)*wts, 1, sum)
+  tau <- apply(Pt*(1 - Pt)*wts^2, 1, sum)
+  l_z <- Wn/sqrt(tau)
+  pv  <- pnorm(l_z)
+  out <- data.frame(theta = theta_hat,
+                    statistic = l_z,
+                    p.value = pv)
+  
+  if(plot == TRUE){
+    ggplot(out, aes(x = theta_hat, y = l_z)) +
+      geom_point() +
+      xlab(expression(hat(theta))) +
+      ylab(expression(l[z])) +
+      ggtitle('Person Fit Statistics') +
+      geom_hline(yintercept = qnorm(level),
+                 linetype   = 'dashed',
+                 color      = 'tomato')
+  }
+  
+  return(out)
 }
