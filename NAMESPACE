@@ -18,6 +18,7 @@ export(rcs)
 export(lincon)
 export(cooksD)
 export(backward)
+export(pfs)
 importFrom(Rcpp, evalCpp)
 importFrom(stats, nlminb,
                   optimize,

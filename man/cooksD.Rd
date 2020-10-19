@@ -30,6 +30,10 @@
   A numeric vector containing the value of the statistic.
 }
 
+\seealso{
+  \code{\link{pfs}}
+}
+
 \author{
   Fernando Massa, \email{fmassa@iesta.edu.uy}
 }
