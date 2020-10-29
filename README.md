@@ -1,5 +1,5 @@
 
-# raschreg <img src="images/raschreg_icon.png" width=130 align = "right"/>
+# raschreg <img src="man/figures/raschreg_icon.png" width=130 align = "right"/>
 &nbsp;
 &nbsp;
 ## Overview
