@@ -49,8 +49,7 @@ A data.frame containing the values of \code{theta}, information of every item, a
 }
 \examples{
 n   <- 100
-J   <- 7
-X   <- sim_rasch(n, J)
+X   <- sim_rasch(n)
 mod <- rasch(X)
 info(mod)
 }

@@ -453,7 +453,7 @@ pbootr <- function(mod, B = 99, trace = TRUE){
 }
 
 # profile likelihood CIs
-proflik <- function(mod, alpha = 0.05){
+proflik <- function(mod, level = 0.05){
   est  <- coef(mod)
   init <- unlist(est$est.d)
   if('est.a' %in% names(est)) init <- c(init, log(est$est.a))
@@ -461,7 +461,7 @@ proflik <- function(mod, alpha = 0.05){
     init <- c(init, est$est.b)
     Z    <- mod$linpred
   } else Z <- NULL
-  qch2 <- qchisq(1 - alpha, 1)/2
+  qch2 <- qchisq(1 - level, 1)/2
   L0   <- mod$loglik - qch2
   
   items <- mod$items
@@ -513,7 +513,7 @@ proflik <- function(mod, alpha = 0.05){
   }
   
   rownames(CI) <- rownames(mod$coef)
-  colnames(CI) <- paste(round(c(alpha/2, 1 - alpha/2)*100, 1), '%',sep = '')
+  colnames(CI) <- paste(round(c(level/2, 1 - level/2)*100, 1), '%',sep = '')
   return(CI)
 }
 
@@ -886,7 +886,9 @@ backward <- function(mod, level = 0.05, test = 'LRT', cov_type = 'hessian'){
     cat('----------------','\n')
     cat(paste('step',j,sep=':'),'\n')
     cat('----------------','\n')
-    d_i <- drop1(mod, test = test, cov_type = cov_type)
+    d_i <- drop1(object   = mod,
+                 test     = test,
+                 cov_type = cov_type)
     pv  <- 1 - ifelse (test == rep('LRT', nrow(d_i)),
                        pchisq(d_i$LRT, d_i$df),
                        pf(d_i$W, d_i$dfn, d_i$dfd))
@@ -1038,7 +1040,7 @@ ability <- function(mod, type = 'wle', R = 100){
 }
 
 # person fit statistic
-pfs <- function(mod, level = 0.05, ab_type = 'wle', type = 'snijder'){
+pfs <- function(mod, level = 0.05, ab_type = 'wle'){
   stopifnot(inherits(mod, 'rasch'))
   cmod  <- coef(mod)
   delta <- cmod$est.d
@@ -1061,34 +1063,29 @@ pfs <- function(mod, level = 0.05, ab_type = 'wle', type = 'snijder'){
   wts <- log(Pt/(1-Pt))
   
   # weights correction
-  if (type == 'snijder'){
-    rj  <- matrix(alpha, nrow = n, ncol = J, byrow = TRUE)
-    pt1 <- Pt*(1-Pt)*rj
-    num <- pt1*wts
-    den <- pt1*rj
-    cn  <- apply(num, 1, sum)/apply(den, 1, sum)
-    wts <- wts - cn*rj
-  }
-  
+  rj  <- matrix(alpha, nrow = n, ncol = J, byrow = TRUE)
+  pt1 <- Pt*(1-Pt)*rj
+  num <- pt1*wts
+  den <- pt1*rj
+  cn  <- apply(num, 1, sum)/apply(den, 1, sum)
+  wts <- wts - cn*rj
+
   # statistics
   Wn  <- apply((X - Pt)*wts, 1, sum)
   tau <- apply(Pt*(1 - Pt)*wts^2, 1, sum)
-  l_z <- Wn/sqrt(tau)
+  l_z <- Wn/sqrt(tau) # falta restar la media...
   pv  <- pnorm(l_z)
   out <- data.frame(theta = theta_hat,
                     statistic = l_z,
                     p.value = pv)
   
-  if(plot == TRUE){
-    ggplot(out, aes(x = theta_hat, y = l_z)) +
-      geom_point() +
-      xlab(expression(hat(theta))) +
-      ylab(expression(l[z])) +
-      ggtitle('Person Fit Statistics') +
-      geom_hline(yintercept = qnorm(level),
-                 linetype   = 'dashed',
-                 color      = 'tomato')
-  }
-  
+  ggplot(out, aes(x = theta_hat, y = l_z)) +
+    geom_point() +
+    xlab(expression(hat(theta))) +
+    ylab(expression(l[z])) +
+    ggtitle('Person Fit Statistics') +
+    geom_hline(yintercept = qnorm(level),
+               linetype   = 'dashed',
+               color      = 'tomato')
   return(out)
 }

@@ -35,8 +35,7 @@
 }
 \examples{
 n <- 100
-J <- 7
-X <- sim_rasch(n, J)
+X <- sim_rasch(n)
 mod <- rasch(X)
 pim(mod)
 }

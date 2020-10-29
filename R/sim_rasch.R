@@ -1,4 +1,4 @@
-sim_rasch<-function(n, J = 7,
+sim_rasch<-function(n,
                     delta  = seq(-1.5,1.5,length=J),
                     alpha  = rep(1,J),
                     gamma  = rep(0,J),

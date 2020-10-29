@@ -48,7 +48,9 @@ importFrom(stats, nlminb,
                   contr.sum,
                   'contrasts<-',
                   aggregate,
-                  as.formula)
+                  as.formula,
+                  pnorm,
+                  qnorm)
 import(ggplot2)
 importFrom(cowplot, plot_grid)
 importFrom(rlang, .data)

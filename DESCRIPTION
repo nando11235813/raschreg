@@ -13,5 +13,7 @@ Imports: cowplot,
          Rcpp,
          Rdpack,
          rlang
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
 RdMacros: Rdpack
 LinkingTo: Rcpp

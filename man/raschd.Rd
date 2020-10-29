@@ -50,6 +50,6 @@
 \examples{
 n   <- 100
 J   <- 7
-X   <- sim_rasch(n, J, alpha = rep(1.4, length = J))
+X   <- sim_rasch(n, alpha = rep(1.4, length = J))
 mod <- raschd(X)
 }

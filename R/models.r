@@ -244,9 +244,7 @@ irt2p <- function(items, init = NULL, fixed = NULL){
 raschreg <- function(items, f_reg, z_reg, init = NULL, fixed = NULL){
   if ('data.frame' %in% class(items))   items <- as.matrix(items)
   if (! 'data.frame' %in% class(z_reg)) z_reg <- as.data.frame(z_reg)
-  z_reg <- as.matrix(model.frame(f_reg,
-                                 z_reg,
-                                 na.action = 'na.pass'))
+  z_reg <- pev(z_reg, f_reg)
   J <- ncol(items)
 	p <- ncol(z_reg)
 	# valores iniciales
@@ -331,9 +329,7 @@ raschreg <- function(items, f_reg, z_reg, init = NULL, fixed = NULL){
 raschdreg <- function(items, f_reg, z_reg, init = NULL){
   if ('data.frame' %in%  class(items))  data  <- as.matrix(items)
   if (! 'data.frame' %in% class(z_reg)) z_reg <- as.data.frame(z_reg)
-  z_reg <- as.matrix(model.frame(f_reg,
-                                 z_reg,
-                                 na.action = 'na.pass'))
+  z_reg <- pev(z_reg, f_reg)
   J <- ncol(items)
   p <- ncol(z_reg)
 
@@ -400,9 +396,7 @@ raschdreg <- function(items, f_reg, z_reg, init = NULL){
 irt2preg <- function(items, f_reg, z_reg, init = NULL){
   if ('data.frame' %in% class(items))   data  <- as.matrix(items)
   if (! 'data.frame' %in% class(z_reg)) z_reg <- as.data.frame(z_reg)
-  z_reg <- as.matrix(model.frame(f_reg,
-                                 z_reg,
-                                 na.action = 'na.pass'))
+  z_reg <- pev(z_reg, f_reg)
   J <- ncol(items)
   p <- ncol(z_reg) 
 

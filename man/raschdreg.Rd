@@ -58,6 +58,6 @@ An object of class \code{rasch} is a list containing the following componentes:
 	n    <- 200
 	x1x2 <- cbind(x1 = rnorm(n), x2 = ifelse(runif(n) < 0.5, 0, 1))
 	beta <- c(1.2, 0.7)
-	X    <- sim_rasch(n = n, J = 7, delta = dif, reg = x1x2, beta = beta)
+	X    <- sim_rasch(n = n, delta = dif, reg = x1x2, beta = beta)
   mod  <- raschdreg(X, ~ x1 + x2, x1x2)
 }

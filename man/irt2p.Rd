@@ -48,6 +48,6 @@ Optimizes \code{irt2plikLA} numericaly via \code{nlminb}. Rows containing at lea
 \examples{
 n   <- 100
 J   <- 7
-X   <- sim_rasch(n, J, alpha = runif(J, 0.5, 1.5))
+X   <- sim_rasch(n, alpha = runif(J, 0.5, 1.5))
 mod <- irt2p(X)
 }

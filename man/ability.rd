@@ -53,8 +53,8 @@ A numeric containing a single column with the estimated abilities.
 
 \examples{
 n <- 100
-J <- 7
-x <- sim_rasch(n, J, ability = TRUE)
+x <- sim_rasch(n, ability = TRUE)
+J <- ncol(x) - 1
 X <- x[, 1:J]
 ab <- x[,J+1]
 mod <- rasch(X)

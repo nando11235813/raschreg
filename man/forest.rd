@@ -40,10 +40,9 @@
   \code{\link{plot.rasch}}, \code{\link{info}}, \code{\link{pim}}, \code{\link{itemfit}}
 }
 \examples{
-n<-100
-J<-7
-X<-sim_rasch(n,J)
-mod<-rasch(X)
+n <- 100
+X <- sim_rasch(n)
+mod <- rasch(X)
 forest(mod)
 }
 

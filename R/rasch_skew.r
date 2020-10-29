@@ -1,9 +1,9 @@
 raschsk<-function(items, init = NULL){
 
-  if (class(items) == 'data.frame') items <- as.matrix(items)
+  if (!'data.frame' %in% class(items)) items <- as.matrix(items)
   # initial values
 	J <- ncol(items)
-	if (is.null(init)) init<-rep(0,J+1)
+	if (is.null(init)) init <- rep(0, J + 1)
 
 	# NA checking
 	if(any(is.na(items))) {

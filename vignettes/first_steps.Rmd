@@ -1,0 +1,103 @@
+---
+title: "The raschreg package: first steps"
+output: rmarkdown::html_vignette
+description: >
+  This vignette describes the how to download the current version of raschreg from the github repository and perform a couple of introductory analysis.
+vignette: >
+  %\VignetteIndexEntry{First steps}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 5, fig.height= 3, fig.align = 'center')
+```
+
+## Introduction
+
+The pourpose of this library is to provide R users with a framework for Item Response Theory (IRT) models, allowing for the possibility to include regression effects for the person parameters.
+
+## Installation
+
+In order to install the current development version from [Github](https://github.com/nando11235813/raschreg) you will nedd to have the [devtools](https://CRAN.R-project.org/package=devtools) library.
+
+```{r, echo=FALSE, eval=FALSE}
+devtools::install_github("nando11235813/raschreg")
+```
+
+## Overview
+
+1. raschreg provides a set of functions to analyise IRT models in the case of dochotomous items. As of today it is possible to fit one and tow parameter logistic models. Iin both cases it is possible to include explanatory variables of the ability parameter.
+
+2. The library's focus is on the analysis of these models from a regression point of view. In this way, the main idea of the functionalities provided by raschreg is in the adjustment of IRT models incorporating determining factors of the ability parameter.
+
+3. The library contains functions that allow to carry out the analysis from both points of view. On the one hand, it is possible to obtain estimates of the ability parameter, graph Item Characteristics Curves and obtain adjustment measures (among other possibilities). While on the other hand, it is possible to perform inferential procedures such as hypothesis tests and confidence intervals on the regression parameters.
+
+4. As mentioned above, it is possible to view the results of fitting the models. Currently it is possible to plot Item Characteristic Curves, Information Curves, Person-Item Maps, Forest Plots, Item Fit plots and Person Fit plots.
+
+5. The inclusion of several methods commonly used in the field of regression models allows the analysis of the regression component in a similar way to that used by functions such as `lm()` and `glm()`.
+
+
+## Simulation
+
+To simulate a set of items, raschreg provides the `sim_rasch()` function. The main parameters are:  
+1. `n`: number of rows in the dataset.  
+2. `J`: number of items (optional if you don't supply difficultiy and/or discrimination parameters).  
+3. `delta`: a vector containing item difficulties.  
+4. `alpha`: a vector containing item discriminations.  
+5. `gamma`: a vector containing pseudo-guessing parameters.  
+6. `reg`: a matrix containing explanatory variables of the ability parameter.  
+7. `beta`: a vector regression coefficients.  
+8. `ability`: a logical value that determines whether the ability parameters are returned or not.
+
+In order to simulate 1000 observations of a 9 items questionnaire we can write:
+```{r sim}
+library(raschreg)
+difficulties <- c(-2, -1.5, -1,-0.5, 0, 0.5, 1, 1.5, 2)
+set.seed(1)
+items <- sim_rasch(1000, delta = difficulties)
+head(items)
+```
+Although we already know which items should present more difficulty, it is possible to obtain a first approximation, estimating the proportion of correct answers in each one of them. 
+```{r dificult}
+apply(items, 2, mean)
+```
+
+## Rasch model
+
+The most elementary model that could be estimated is the Rasch model. Which assumes that all discrimination parameters are equal to 1.  
+Alternatively, it is possible to estimate the rasch model by relaxing the assumption of equality between discrimination parameters, allowing it to be estimated from the data.  
+Finally, it is possible to adjust the two parameter logistic model, which allows the estimation of a discrimination parameter for each item separately.
+```{r models, echo=FALSE}
+mod1 <- rasch(items)
+mod2 <- raschd(items)
+mod3 <- irt2p(items)
+```
+
+## Comparing models
+Taking advantage of the fact that the three fitted models are nested, it is convenient to compare them using the likelihood ratio statistic.
+```{r lr}
+anova(mod1, mod2, mod3)
+```
+In this way (and as expected) it is observed that the most appropriate model is the model that restricts the discrimination parameters to one.
+
+## Inspecting the results
+Having selected a model, it is possible to inspect the estimation of the parameters and the precision with which they were estimated. The raschreg library has a specific `summary` method for the class of objects that are obtained when fitting these models.
+```{r summ}
+summary(mod1)
+```
+Additionally, it is possible to obtain confidence intervals using different methodologies.
+```{r ci}
+confint(mod1)
+```
+In this way, it is observed how the model adequately recovers the values of the parameters from which the simulation was carried out.
+
+## Visualizing the results
+Finally, it is possible to view the item characteristic curves by means of a specific plot method for these objects.
+```{r icc, results='asis'}
+plot(mod1)
+```
+
+## Issues
+If you find any trouble or suggestions please let me know by creating an issue on the [raschreg Github](https://github.com/nando11235813/raschreg).
+

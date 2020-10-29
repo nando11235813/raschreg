@@ -7,14 +7,11 @@ Simulation of different Rasch models
 Simulates Rasch models including (or not) discrimination parameters and a regression component.
 }
 \usage{
-sim_rasch(n, J, delta, alpha, gamma, reg, beta, ability)
+sim_rasch(n, delta, alpha, gamma, reg, beta, ability)
 }
 \arguments{
   \item{n}{
     Number of observations.
-  }
-  \item{J}{
-    Number of items
   }
   \item{delta}{
     Numeric vector of difficulty parameters.
@@ -50,6 +47,6 @@ Fernando Massa, \email{fmassa@iesta.edu.uy}
   \code{\link{rasch}}
 }
 \examples{
-sim <- sim_rasch(100, 10)
+sim <- sim_rasch(100)
 mod <- rasch(sim)
 }

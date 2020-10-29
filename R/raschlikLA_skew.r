@@ -22,6 +22,6 @@ raschlikLA_skew<-function(par, X){
 	                                       tol      = 1e-4,
 	                                       maximum  = TRUE)$maximum)
   # log-likelihood value hmax-0.5*log(-h''max)
-	ll     <- raschlik_skew(par, X, bmax, a = alphas, np = np, nu = nu)
+	ll     <- raschlik_skew(d = par, X = X, bmax = bmax, a = alphas, np = np, nu = nu)
 	return(-ll)
 }

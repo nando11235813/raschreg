@@ -42,8 +42,7 @@ Describes the relationship between the latent ability and the probability of a c
 }
 \examples{
 n <- 100
-J <- 7
-X <- sim_rasch(n, J)
+X <- sim_rasch(n)
 mod <- rasch(X)
 plot(mod)
 plot(mod, item = 'item4', main = 'ICC for item4')
