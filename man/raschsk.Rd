@@ -48,7 +48,6 @@ The asymmetric model differs from the original in that it assumes that ability i
 
 \examples{
 n   <- 100
-J   <- 7
-X   <- sim_rasch(n,J)
+X   <- sim_rasch(n)
 mod <- raschsk(X)
 }

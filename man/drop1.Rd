@@ -42,7 +42,7 @@ The function drop1.rasch computes and returns a data.frame containing informatio
 	n    <- 200
 	x1x2 <- cbind(x1 = rnorm(n), x2 = ifelse(runif(n) < 0.5, 0, 1))
 	beta <- c(1.2, 0.7)
-	X    <- sim_rasch(n = n, J = 7, delta = dif, reg = x1x2, beta = beta)
+	X    <- sim_rasch(n = n, delta = dif, reg = x1x2, beta = beta)
   mod  <- raschreg(X, ~ x1 + x2, x1x2)
   drop1(mod)
 }

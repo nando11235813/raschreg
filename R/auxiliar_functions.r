@@ -198,7 +198,7 @@ confint.rasch <- function(object, parm, level = 0.95, type = 'wald', B = 99, ...
     }
   }
   if (type == 'profile'){
-    ci <- proflik(object, alpha = 1 - level)
+    ci <- proflik(object, level = 1 - level)
   }
   if (type == 'boot'){
     boots <- pbootr(object, B = B)

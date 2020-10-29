@@ -8,7 +8,9 @@
   The function \code{info} computes (and by default plots) the test information function from a fitted Rasch (regression) model.
 }
 \usage{
-  info(mod, theta = NULL, item = NULL, main_item = NULL, main_total = NULL, which = 'both', plot = TRUE)
+  info(mod, theta = NULL, item = NULL,
+       main_item = NULL, main_total = NULL,
+       which = 'both', plot = TRUE)
 }
 \arguments{
   \item{mod}{

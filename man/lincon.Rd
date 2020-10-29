@@ -42,8 +42,7 @@
 
 \examples{
 n   <- 100
-J   <- 7
-X   <- sim_rasch(n, J)
+X   <- sim_rasch(n)
 mod <- rasch(X)
 # test equality of delta_1 and delta_2.
 R <- matrix(c(1, -1, 0, 0, 0, 0, 0), nrow = 1)

@@ -1,10 +1,15 @@
 sim_rasch<-function(n,
-                    delta  = seq(-1.5,1.5,length=J),
-                    alpha  = rep(1,J),
-                    gamma  = rep(0,J),
+                    delta  = NULL,
+                    alpha  = NULL,
+                    gamma  = NULL,
                     reg    = NULL,
                     beta   = NULL,
                     ability= FALSE){
+  if (is.null(delta)) delta <- seq(-2, 2, length = 7)
+  J <- length(delta)
+  if (is.null(alpha)) alpha <- rep(1, J)
+  if (is.null(gamma)) gamma <- rep(0, J)
+  
   X <- matrix(0, n, J)
   if(!is.null(beta) & !is.null(reg)) {
     mu <- reg%*%beta

@@ -1,13 +1,19 @@
 ---
 title: "The raschreg package: first steps"
-output: rmarkdown::html_vignette
+author: Fernando Massa
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
 description: >
   This vignette describes the how to download the current version of raschreg from the github repository and perform a couple of introductory analysis.
 vignette: >
-  %\VignetteIndexEntry{First steps}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+   %\VignetteIndexEntry{First steps}
+   %\VignetteEngine{knitr::rmarkdown}
+   \usepackage[utf8]{inputenc}
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.width = 5, fig.height= 3, fig.align = 'center')
@@ -21,7 +27,7 @@ The pourpose of this library is to provide R users with a framework for Item Res
 
 In order to install the current development version from [Github](https://github.com/nando11235813/raschreg) you will nedd to have the [devtools](https://CRAN.R-project.org/package=devtools) library.
 
-```{r, echo=FALSE, eval=FALSE}
+```{r, eval=FALSE}
 devtools::install_github("nando11235813/raschreg")
 ```
 
@@ -41,14 +47,14 @@ devtools::install_github("nando11235813/raschreg")
 ## Simulation
 
 To simulate a set of items, raschreg provides the `sim_rasch()` function. The main parameters are:  
-1. `n`: number of rows in the dataset.  
-2. `J`: number of items (optional if you don't supply difficultiy and/or discrimination parameters).  
-3. `delta`: a vector containing item difficulties.  
-4. `alpha`: a vector containing item discriminations.  
-5. `gamma`: a vector containing pseudo-guessing parameters.  
-6. `reg`: a matrix containing explanatory variables of the ability parameter.  
-7. `beta`: a vector regression coefficients.  
-8. `ability`: a logical value that determines whether the ability parameters are returned or not.
+* `n`: number of rows in the dataset.  
+* `J`: number of items (optional if you don't supply difficultiy and/or discrimination parameters).  
+* `delta`: a vector containing item difficulties.  
+* `alpha`: a vector containing item discriminations.  
+* `gamma`: a vector containing pseudo-guessing parameters.  
+* `reg`: a matrix containing explanatory variables of the ability parameter.  
+* `beta`: a vector regression coefficients.  
+* `ability`: a logical value that determines whether the ability parameters are returned or not.
 
 In order to simulate 1000 observations of a 9 items questionnaire we can write:
 ```{r sim}

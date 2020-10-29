@@ -43,7 +43,7 @@ Where \eqn{w_j(\theta)} are corrected to account for ability estimation.
 
 \examples{
 n   <- 50
-dif <- seq(-2, 2, length = J)
+dif <- seq(-2, 2, length = 7)
 X   <- sim_rasch(n, delta = dif)
 mod <- rasch(X)
 pfs(mod)

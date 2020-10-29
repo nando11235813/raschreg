@@ -8,7 +8,8 @@
   \code{summary} method for class \code{"rasch"}.
 }
 \usage{
-  \method{summary}{rasch}(object, cov_type='hessian', correlation=FALSE, signif.stars=getOption("show.signif.stars"),...)
+  \method{summary}{rasch}(object, cov_type = 'hessian', correlation = FALSE,
+  signif.stars = getOption("show.signif.stars"), ...)
 }
 \arguments{
   \item{object}{
