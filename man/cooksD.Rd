@@ -40,10 +40,10 @@
 
 \examples{
 n   <- 50
-J   <- 15
+J   <- 5
 X   <- sim_rasch(n, delta = seq(-2, 2, length = J))
 # alter 10th observation
-X[10, ] <- rep(c(1,0),c(7,8))
+X[10, ] <- rep(c(1,0),c(2,3))
 # estimate model
 mod <- rasch(X)
 # Cook's distance 
