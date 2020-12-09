@@ -8,7 +8,7 @@ output:
 description: >
   This vignette describes the how to download the current version of raschreg from the github repository and perform a couple of introductory analysis.
 vignette: >
-   %\VignetteIndexEntry{First steps}
+   %\VignetteIndexEntry{The raschreg package: first steps}
    %\VignetteEngine{knitr::rmarkdown}
    \usepackage[utf8]{inputenc}
 ---
