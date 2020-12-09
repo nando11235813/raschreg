@@ -220,8 +220,9 @@ update.rasch <- function(object, formula., ..., evaluate = TRUE) {
   stopifnot(inherits(object, 'rasch'))
   call   <- object$call
   if ('linpred' %in% names(object)) {
-    x1xp   <- paste(colnames(object$linpred), collapse = '+')
-    f_reg  <- formula(paste('~', x1xp,sep = ''))
+    #x1xp   <- paste(colnames(object$linpred), collapse = '+')
+    #f_reg  <- formula(paste('~', x1xp,sep = ''))
+    f_reg   <- eval(call[[3]])
   } else f_reg <- NULL
   extras <- match.call(expand.dots = FALSE)$...
   if (is.null(call)) 
@@ -443,7 +444,7 @@ pbootr <- function(mod, B = 99, trace = TRUE){
   mods <- vector('list',B)
   
   for (i in 1:B){
-    X_i        <- sim_rasch(n, J, delta = delta, alpha = alpha, reg = reg, beta = beta)
+    X_i        <- sim_rasch(n, delta = delta, alpha = alpha, reg = reg, beta = beta)
     if (trace) cat('Fitting model ',i,'\n')
     call$items <- as.name('X_i')
     mods[[i]]  <- eval(call)
@@ -1089,3 +1090,110 @@ pfs <- function(mod, level = 0.05, ab_type = 'wle'){
                color      = 'tomato')
   return(out)
 }
+
+# LD
+# estadistico de chan thiessen
+prob_ij<-function(tita, deltas, alphas){
+  eta_i <- alphas[1]*(tita - deltas[1])
+  eta_j <- alphas[2]*(tita - deltas[2])
+  p00 <- ( 1/(1+exp(eta_i)) )*( 1/(1+exp(eta_j)) )
+  p01 <- ( 1/(1+exp(eta_i)) )*( exp(eta_j)/(1+exp(eta_j)) )
+  p10 <- ( exp(eta_i)/(1+exp(eta_i)) )*( 1/(1+exp(eta_j)) )
+  p11 <- ( exp(eta_i)/(1+exp(eta_i)) )*( exp(eta_j)/(1+exp(eta_j)) )
+  matrix(c(p00,p01,p10,p11),2,2)
+}
+ch_th <- function(mod, nsim = 1e4){
+  items <- mod$items
+  J <- ncol(items)
+  n <- nrow(items)
+  cmod <- coef(mod)
+  dif <- cmod$est.d
+  if ('est.a' %in% names(cmod)) alphas <- cmod$est.a else alphas <- rep(1,J)
+  if (length(alphas) == 1) alphas <- rep(alphas, J)
+  
+  X2 <- G2 <-matrix(NA, J, J)
+  colnames(X2) <- rownames(X2) <- colnames(items)
+  colnames(G2) <- rownames(G2) <- colnames(items)
+  titas <- rnorm(nsim)
+  for (i in 1:(J-1)){
+    for (j in (i+1):J){
+      tab_ij <- table(items[,i],items[,j])
+      pij <- as.numeric(t(tab_ij/n))
+      Pij <- apply(sapply(titas, prob_ij, dif[c(i,j)], alphas[c(i,j)]), 1, mean)
+      X2[i,j] <-   n*sum(((pij-Pij)^2)/Pij)
+      G2[i,j] <- 2*n*sum(pij*log(pij/Pij))  # se rompo cuando algun pij=0
+      X2[j,i] <- 1 - pchisq(X2[i,j], 1)
+      G2[j,i] <- 1 - pchisq(G2[i,j], 1)
+    }
+  }
+  return(X2)
+}
+
+
+Q3 <- function(mod, ab_type = 'wle'){
+  items <- mod$items
+  J     <- ncol(items)
+  theta <- ability(mod, type = ab_type)
+  cmod  <- coef(mod)
+  dif   <- cmod$est.d
+  if ('est.a' %in% names(cmod)) alphas <- cmod$est.a else alphas <- rep(1,J)
+  if (length(alphas) == 1) alphas <- rep(alphas, J)
+  
+  eta  <- outer(theta, dif, '-') %*% diag(alphas)
+  res  <- items - exp(eta)/(1+ exp(eta))
+  q3 <- cor(res)
+  q3[lower.tri(q3, diag = TRUE)] <- NA
+  z <- 0.5*(log(1 + q3) - log(1 - q3))
+  z <- t(2*(1-pnorm(abs(z))))
+  q3[lower.tri(q3)] <- z[lower.tri(z)]
+  return(q3)
+}
+
+
+int_tetra <- function(w, z1, z2){
+  exp(-0.5*(z1^2 + z2^2 - 2*z1*z2*cos(w))/(sin(w)^2))
+}
+zero_tetra <- function(r, tab){
+  tab <- tab/sum(tab)
+  a <- tab[1,1]
+  p1 <- a + tab[1,2]
+  p2 <- a + tab[2,1]
+  z1 <- qnorm(p1)
+  z2 <- qnorm(p2)
+  integrate(int_tetra, lower = acos(r), upper = pi, z1 = z1, z2 = z2)$value/(2*pi)-a
+}
+tetra <- function(tab, l=-0.99, u=0.99) uniroot(zero_tetra, c(l,u), tab = tab)$root
+# https://core.ac.uk/download/pdf/14378486.pdf
+tetram<-function(items){
+  J  <- ncol(items)
+  tt <- diag(J)
+  for (i in 1:(J-1)) {
+    for (j in (i+1):J){
+      tab_ij  <- table(items[,i], items[,j])
+      if(any(tab_ij==0)) tab_ij <- tab_ij+1/2
+      tl <- zero_tetra(-0.99, tab_ij)
+      tu <- zero_tetra( 0.99, tab_ij)
+      if(tl*tu > 0) tab_ij <- tab_ij[c(2,1),c(2,1)]
+      tt[i,j] <- tetra(tab_ij)
+      tt[j,i] <- tetra(tab_ij)
+    }
+  }
+  return(tt)
+}
+
+# unidimensionality test
+unidim <- function(mod, B = 99, trace = TRUE){
+  extract2 <- function(mod){
+    items <- mod$items
+    snd <- eigen(tetram(items))$values[2]
+  }
+  stat <- extract2(mod)
+  mods <- pbootr(mod, B = B, trace = trace)
+  statb <- unlist(lapply(mods, extract2))
+  pval  <- (1 + sum(statb > stat))/(B + 1)
+  cat('Bootstrap based unidimensionality test','\n')
+  print(data.frame(statistic = stat,
+                   p.value = pval))
+  invisible(list(statistic = stat, p.value = pval))
+}
+# Drasgow, F. and Lissak, R. (1983) Modified parallel analysis: a procedure for examining the latent dimensionality of dichotomously scored item responses. Journal of Applied Psychology, 68, 363-373.
