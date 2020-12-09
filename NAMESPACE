@@ -50,7 +50,9 @@ importFrom(stats, nlminb,
                   aggregate,
                   as.formula,
                   pnorm,
-                  qnorm)
+                  qnorm,
+                  cor,
+                  integrate)
 import(ggplot2)
 importFrom(cowplot, plot_grid)
 importFrom(rlang, .data)

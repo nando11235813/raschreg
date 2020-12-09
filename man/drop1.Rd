@@ -8,7 +8,7 @@
   \code{drop1} method for class \code{"rasch"}.
 }
 \usage{
-  \method{drop1}{rasch}(object, scope = NULL, test = 'LRT', cov_type = 'hessian', ...)
+  \method{drop1}{rasch}(object, scope = NULL, test = 'LRT', cov_type = 'hessian', scale = 0, k = 2, ...)
 }
 \arguments{
   \item{object}{
@@ -22,6 +22,12 @@
   }
   \item{cov_type}{
     A character indicating which covariance matrix estimation is to be used. Possible choices are 'hessian', 'opg' and 'sandwich'.
+  }
+  \item{scale}{
+    Scale parameter (included only for compatibility issues).
+  }
+  \item{k}{
+    Scale parameter (included only for compatibility issues, see \code{\link[stats]{drop1}}).
   }
   \item{...}{
     Additional arguments affecting the summary produced.

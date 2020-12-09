@@ -649,9 +649,8 @@ pev <- function(z, f){
   	k <- length(ncat)
   	for (i in 1:k){
   		ncol    <- grep(ncat[i],colnames(mm))
-  		if (length(ncol)>1) ncol <- ncol[1]
-  		catnum  <- gsub(ncat[i],'',colnames(mm)[ncol])
-  		catname <- rownames(ctr[[i]])[which(ctr[[i]]=='1')]
+  		catnum  <- gsub(ncat[i], '', colnames(mm)[ncol])
+  		catname <- names(which(apply(ctr[[i]]==1,1,sum)==1))
   		# finally
   		colnames(mm)[ncol]<- paste(ncat[i],'(',catname,')',sep='')
   	}
@@ -755,12 +754,12 @@ constrainer <- function(pars, R, b){
 }
 
 # drop all possible single terms to a model
-drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian', ...){
+drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian', scale = 0, k = 2, ...){
   stopifnot(inherits(object, 'rasch'))
   if (!'beta' %in% names(object)) stop("'object' must have explanatory variables")
   # extract model formula
   if (is.null(scope)) {
-    f <- as.formula(paste('~', paste(colnames(object$linpred), collapse = '+')))
+    f <- eval(object$call[[3]])
   } else {
     f <- scope
   }
@@ -794,7 +793,7 @@ drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian'
     r  <- matrix(0, ncol = length(mm)) 
     # number of irt parameters
     np <- nrow(object$coef)
-    # covariance matrix (regession effects)
+    # covariance matrix (regression effects)
     V  <- vcov(object, type = cov_type)
     V1 <- solve(V[-seq(np),-seq(np)])
     # regression parameters
@@ -879,27 +878,28 @@ pvtol <- function(pv, tol = 0.01, digits = 3){
 # backawrd variable selection
 backward <- function(mod, level = 0.05, test = 'LRT', cov_type = 'hessian'){
   stopifnot(inherits(mod, 'rasch'))
-  f  <- as.formula(paste('~', paste(colnames(mod$linpred), collapse = '+')))
-  xj <- all.vars(f)
-  k  <- length(xj)
+  fmod  <- eval(mod$call[[3]])
+  xj    <- all.vars(fmod)
+  k     <- length(xj)
   
   for (j in 1:k){
-    cat('----------------','\n')
-    cat(paste('step',j,sep=':'),'\n')
-    cat('----------------','\n')
+    cat('----------------', '\n')
+    cat(paste('step', j, sep = ':'), '\n')
+    cat('----------------', '\n')
     d_i <- drop1(object   = mod,
                  test     = test,
                  cov_type = cov_type)
     pv  <- 1 - ifelse (test == rep('LRT', nrow(d_i)),
                        pchisq(d_i$LRT, d_i$df),
                        pf(d_i$W, d_i$dfn, d_i$dfd))
-    if (all(pv < alpha)) break else {
+    if (all(pv < level)) break else {
       pvmax <- which.max(pv)
       x_out <- rownames(d_i)[pvmax]
       f_out <- as.formula(paste('~.-', x_out))
-      mod   <- update(mod, f_reg = f_out)
+      fmod  <- update(fmod, f_out)
+      mod   <- update(mod, f_reg = fmod)
       text1 <- paste('Variable exiting the model : ', x_out, sep = '')
-      text2 <- paste(text1,' (p-value: ',pvtol(pv[pvmax],0.001),')',sep='')
+      text2 <- paste(text1,' (p-value: ',pvtol(pv[pvmax], 0.001),')', sep = '')
       cat(text2, '\n')
     }
   }
