@@ -1,0 +1,113 @@
+---
+title: "The raschreg package: Rasch regression models"
+author: Ramon Alvarez-Vaz and Fernando Massa
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+description: >
+  This vignette describes the how to estimate and visualize the results of a Rasch regression model using raschreg functions.
+vignette: >
+   %\VignetteIndexEntry{The raschreg package: Rasch regression models}
+   %\VignetteEngine{knitr::rmarkdown}
+   \usepackage[utf8]{inputenc}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 5, fig.height= 3, fig.align = 'center')
+```
+
+# Introduction
+
+This vignette presents the main features of the raschreg package. The analysis of a data set referring to oral pathologies is carried out, seeking to infer which sociodemographic and behavioral characteristics affect oral health and to what extent they do so.
+
+# The data
+
+The `odont_ncd` data set contains 602 observations and three groups of variables. The first of them refers to 6 oral pathologies; gingival bleeding, periodontal pocket, attachment loss, cavities, lesions of the oral mucosa and tooth loss.  
+The second set of variables is composed of sociodemographic factors such as sex, age and education are available. Ultimately, variables related to non-communicable diseases such as hypertension, diabetes and obesity are presented, as well as behavioral factors such as physical activity, alcohol and tobacco consumption.
+
+```{r datos}
+library(raschreg)
+data(odont_ncd)
+```
+  
+With the exception of age, the rest of the variables are presented in a dichotomous manner. More information can be obtained through `help (odont_ncd)`.
+
+# Rasch regression
+
+Before proceeding to the regression analysis, it is worth mentioning that `raschreg` it encodes the explanatory variables in order to preserve the zero mean of the latent variable.  
+This encoding consists of three points:
+* The linear predictor does not include an intercept.
+* Quantitative variables are centered around their mean.
+* Qualitative variables are estimated under a sum to zero constraint.  
+
+Our first model will include sex, age and education as explanatory variables of the propensity to suffer from oral diseases.
+
+```{r m1}
+items <- odont_ncd[, c('pocket','loa','decay','lesions','less_10','bleed')]
+mod1  <- raschreg(items, ~ sex + age + education, odont_ncd)
+```
+
+The results of the estimation stage can be inspected using the function *summary*.
+
+```{r sum_m1}
+summary(mod1)
+```
+
+This first analysis indicates that sex does not seem to explain the propensity to suffer from oral diseases, but on the other hand, this condition seems to worsen lineary as age increases.  
+This assumption of linearity can be tested by a specification using splines. This can be done with the functions of the *splines* package or with the *rcs* function, which allows the user to fit restricted cubic splines.
+```{r m2}
+mod2 <- raschreg(items, ~ sex + rcs(age, 3) + education,odont_ncd)
+summary(mod2)
+```
+
+Both models can be compared using different information criteria.
+```{r ics}
+AIC(mod1, mod2)
+BIC(mod1, mod2)
+```
+
+Based on these results, it is convenient to continue with the non-linear specification of age. Additionally, as observed in the summary of `mod2`, it is possible to test that the two coefficients associated with the variable education are simultaneously zero.  
+
+```{r educ}
+mod3 <- update(mod2, ~. - education)
+anova(mod3, mod2)
+```
+
+In this way, using the *AIC*, *BIC*, *update* and *anova* functions it is possible to determine the best set of explanatory variables. On the other hand, `raschreg` also has the possibility of carrying out this process through the backward procedure. Next, the previous example is carried out using the *backward* function.
+
+```{r back}
+mod4 <-  backward(mod2, level = 0.05, test = 'wald')
+mod4
+```
+
+# Visualization
+
+Once a final model is estimated, it is possible to visualize the results provided by it using different functions.  
+
+## Item Characteristic Curves
+The characteristic curves of each item can be visualized using the `plot` function, which offers the possibility of highlighting a particular item if the researcher has a greater interest in any of them.
+
+```{r icc}
+plot(mod4)
+```
+
+## Person Item Maps
+Another graphic that allows you to visualize the model is the person-item map. From this it is possible to simultaneously visualize the performance of the subjects together with the difficulty of the items. Additionally, the discrimination power of the items is represented by a circle whose radius corresponds to the value of this parameter.  
+This function offers the possibility of indicating what type of estimator should be used to obtain the individual parameters.
+
+```{r pim}
+pim(mod4, ab_type = 'wle')
+```
+
+## Forest plot
+Finally, the estimates of the model parameters and their respective confidence intervals can be visualized using the forest-plot. The implementation provided by `raschreg` raises different panels for each type of parameter. In this way, a panel is presented for the difficulty parameters, another for the discrimination parameters and one more for the regression parameters.
+
+```{r fp}
+forest(mod4)
+```
+
+# Issues
+If you find any trouble or suggestions please let me know by creating an issue on the [raschreg Github](https://github.com/nando11235813/raschreg).
+
