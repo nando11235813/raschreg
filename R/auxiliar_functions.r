@@ -218,17 +218,17 @@ confint.rasch <- function(object, parm, level = 0.95, type = 'wald', B = 99, ...
 # update
 update.rasch <- function(object, formula., ..., evaluate = TRUE) {
   stopifnot(inherits(object, 'rasch'))
-  call   <- object$call
+  call   <- getCall(object)
   if ('linpred' %in% names(object)) {
-    #x1xp   <- paste(colnames(object$linpred), collapse = '+')
-    #f_reg  <- formula(paste('~', x1xp,sep = ''))
     f_reg   <- eval(call[[3]])
   } else f_reg <- NULL
   extras <- match.call(expand.dots = FALSE)$...
   if (is.null(call)) 
     stop("Need an object with a 'call' component")
-  if (!missing(formula.))
-    call$f_reg <- update.formula(f_reg, formula.)
+  if (!missing(formula.)){
+    f_upd <- update.formula(f_reg, formula.)
+    call  <- call_modify(call, f_reg = f_upd)
+  }
   if(length(extras)>=1) {
 	  existing <- !is.na(match(names(extras), names(call)))
 	  ## do these individually to allow NULL to remove entries.
@@ -764,7 +764,6 @@ drop1.rasch <- function(object, scope = NULL, test = 'LRT', cov_type = 'hessian'
     f <- scope
   }
   xj <- all.vars(f)
-  
   if (test == 'LRT'){
     mods <- vector('list')
     for (j in 1:length(xj)){
@@ -875,7 +874,7 @@ pvtol <- function(pv, tol = 0.01, digits = 3){
   return(pv)
 }
 
-# backawrd variable selection
+# backward variable selection
 backward <- function(mod, level = 0.05, test = 'LRT', cov_type = 'hessian'){
   stopifnot(inherits(mod, 'rasch'))
   fmod  <- eval(mod$call[[3]])
@@ -897,7 +896,8 @@ backward <- function(mod, level = 0.05, test = 'LRT', cov_type = 'hessian'){
       x_out <- rownames(d_i)[pvmax]
       f_out <- as.formula(paste('~.-', x_out))
       fmod  <- update(fmod, f_out)
-      mod   <- update(mod, f_reg = fmod)
+      mod   <- eval(call_modify(mod$call, f_reg = fmod),
+                    parent.frame())
       text1 <- paste('Variable exiting the model : ', x_out, sep = '')
       text2 <- paste(text1,' (p-value: ',pvtol(pv[pvmax], 0.001),')', sep = '')
       cat(text2, '\n')
