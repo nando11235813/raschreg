@@ -3,8 +3,10 @@ Type: Package
 Title: Item Response Theory models including explanatory variables of the ability parameter
 Version: 1.0
 Date: 2020-03-16
-Author: person("Fernando", "Massa", email = "fmassa@iesta.edu.uy",
-  role = c("aut", "cre"), comment = c(ORCID='https://orcid.org/0000-0002-2922-4097'))
+Authors@R: c(person("Fernando", "Massa", email = "fmassa@iesta.edu.uy",
+  role = c("aut", "cre"), comment = c(ORCID='https://orcid.org/0000-0002-2922-4097')),
+  person("Ramón", "Álvarez-Vaz", email = "ramon@iesta.edu.uy",
+  role = "aut", comment = c(ORCID='http://orcid.org/0000-0002-2505-4238')))
 Maintainer: Fernando Massa <fmassa@iesta.edu.uy>
 Description: Provides a set of functions to estimate, simulate and visualize Item Response Theroy models such as: Rasch model, Rasch model with a common discrimination parameter and the Two Parameter Logistic model). Inclusion of regression effects of the ability paramters are allowed. Marginal log-likelihood is approximated using the Laplace method.
 License: GPL (>= 2)
