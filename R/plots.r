@@ -202,6 +202,8 @@ forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_re
   }
   if ('linpred' %in% names(mod)){
     s$beta <- mod$beta
+    nm     <- rownames(s$beta)
+    rownames(s$beta) <- gsub('beta_', '', nm)
   }
   graphs <- vector('list', 0)
   
