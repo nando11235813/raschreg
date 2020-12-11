@@ -192,7 +192,6 @@ pim <- function(mod, ab_type = 'wle', main = NULL){
 # Forest plot
 forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_reg = NULL){
   stopifnot(inherits(mod, 'rasch'))
-  #s      <- summary(mod)
   cmod  <- mod$coef
   pname <- substr(rownames(cmod),1,5)
   s     <- list(difficulty = cmod[pname == 'delta',])
