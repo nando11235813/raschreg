@@ -294,7 +294,7 @@ forest <- function(mod, level = 0.05, main_dif = NULL, main_disc = NULL, main_re
 }
 
 # plotfit
-itemfit <- function(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato', main = NULL){
+itemfit <- function(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato', main = NULL, level = 0.95){
   est  <- coef(mod)
   delta <- unlist(est$est.d)
   J <- length(delta)
@@ -304,26 +304,46 @@ itemfit <- function(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato',
   lv <- ability(mod, type = ab_type)
   lv <- round(lv, 3)
   
-  its    <- as.data.frame(mod$items)
-  its$lv <- lv
-  phat   <- aggregate(its[, 1:J],data.frame(lv=its$lv), mean, na.rm = TRUE)
+  # check for regression parameters
+  if ('linpred' %in% names(mod)){
+    tr <- seq(0, 1, by = 1/(J + 1))
+    tr <- quantile(lv, probs = tr)
+    lv <- cut(lv, tr, include.lowert = TRUE)
+    levels(lv) <- apply(embed(tr,2),1,mean)
+    lv <- as.numeric(as.character(lv))
+  }
+  
+  its     <- as.data.frame(mod$items)
+  its$lv  <- lv
+  phat    <- aggregate(its[, 1:J], data.frame(lv = its$lv), mean, na.rm = TRUE)
+  ncateg  <- aggregate(its[, 1:J], data.frame(lv = its$lv), function(x)sum(!is.na(x)))
+  xcateg  <- aggregate(its[, 1:J], data.frame(lv = its$lv), sum, na.rm = TRUE)
   
   # item selection
-  ncol <- which(colnames(its) == item)
-  dat <- data.frame(lv =phat$lv, p_theta = phat[,ncol])
-
+  ncol    <- which(colnames(its) == item)
+  dat     <- data.frame(lv = phat$lv, p_theta = phat[,1 + ncol])
+  # conficence limits
+  ncateg <- ncateg[, 1 + ncol]
+  xcateg <- xcateg[, 1 + ncol]
+  limits  <- dat*0
+  for (i in 1:nrow(limits)){
+    limits[i, ] <- lr_ci_p(xcateg[i] ,ncateg[i], level = level)
+  }
+  colnames(limits) <- c('linf', 'lsup')
+  dat <- data.frame(dat, limits)
   
   # ICC
   theta   <- seq(xlim[1], xlim[2], 0.01)
-  p_theta <- (1/(1 + exp(-alpha[ncol - 1]*(theta - delta[ncol - 1]))))
+  p_theta <- (1/(1 + exp(-alpha[ncol]*(theta - delta[ncol]))))
   dat0    <- data.frame(lv = theta, p_theta)
   
-  ggplot(dat0, aes(x = lv, y = p_theta)) +
-    geom_line(col = col, size = 1) +
-    geom_point(data = dat) +
+  ggplot(dat, aes(x = lv, y = p_theta)) +
+    geom_point(data = dat, aes(x = lv, y = p_theta)) +
+    geom_segment(aes(x = lv, y = linf, xend = lv, yend = lsup),linetype = 'dashed') +
     ylim(0, 1) + 
     xlab(expression(theta)) + ylab(expression(P(theta))) +
     geom_hline(yintercept=c(0, 1)) +
     geom_vline(xintercept=c(0)) +
-    ggtitle(main)
+    ggtitle(main) +
+    geom_line(data = dat0, col = col, size = 1)
 }

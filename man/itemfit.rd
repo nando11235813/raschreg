@@ -8,7 +8,8 @@
   Plots fir of a specified item.
 }
 \usage{
-  itemfit(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato', main = NULL)
+  itemfit(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato',
+  main = NULL, level = 0.95)
 }
 \arguments{
   \item{mod}{
@@ -29,12 +30,18 @@
   \item{main}{
     A main title for the plot.
   }
+  \item{level}{
+    The confidence level required. Default to 0.95.
+  }
 }
 \details{
-  Displays ICC of a specified item along with observed proportions of items grouped by person-parameter estimates.
+  Displays ICC of a specified item along with observed proportions (along with likelihood based confidence intervals) of items grouped by person-parameter estimates.
 }
 \author{
   Fernando Massa, \email{fmassa@iesta.edu.uy}
+}
+\references{
+  \insertRef{somerville2013}{raschreg}
 }
 \seealso{
   \code{\link{plot.rasch}}, \code{\link{info}}, \code{\link{forest}}, \code{\link{pim}}

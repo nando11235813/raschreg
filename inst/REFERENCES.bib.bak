@@ -114,4 +114,15 @@
   doi     = {10.1007/s11336-015-9443-3},
 }
 
+@Article{snijders2001,
+  author  = {Tom Snijders},
+  journal = {Psychometrika},
+  title   = {Asymptotic null distribution of person fit statistics with estimated person parameter},
+  year    = {2001},
+  month   = sep,
+  number  = {3},
+  pages   = {331-324},
+  volume  = {66},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

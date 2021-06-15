@@ -54,7 +54,8 @@ importFrom(stats, nlminb,
                   cor,
                   integrate,
                   getCall,
-                  drop1)
+                  drop1,
+                  embed)
 import(ggplot2)
 importFrom(cowplot, plot_grid)
 importFrom(rlang, .data,

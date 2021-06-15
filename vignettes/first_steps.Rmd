@@ -1,6 +1,6 @@
 ---
 title: "The raschreg package: first steps"
-author: Ramon Alvarez-Vaz and Fernando Massa
+author: Fernando Massa and Ramon Alvarez-Vaz 
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   rmarkdown::html_vignette:
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 5, fig.height= 3, fig.align = 'ce
 
 ## Introduction
 
-The pourpose of this library is to provide R users with a framework for Item Response Theory (IRT) models, allowing for the possibility to include regression effects for the person parameters.
+The purpose of this library is to provide R users with a framework for Item Response Theory (IRT) models, allowing for the possibility to include regression effects for the person parameters.
 
 ## Installation
 
@@ -32,7 +32,7 @@ devtools::install_github("nando11235813/raschreg")
 
 ## Overview
 
-1. raschreg provides a set of functions to analyise IRT models in the case of dochotomous items. As of today it is possible to fit one and tow parameter logistic models. Iin both cases it is possible to include explanatory variables of the ability parameter.
+1. raschreg provides a set of functions to analyise IRT models in the case of dihotomous items. As of today it is possible to fit one and two parameter logistic models. In both cases it is possible to include explanatory variables of the ability parameter.
 
 2. The library's focus is on the analysis of these models from a regression point of view. In this way, the main idea of the functionalities provided by raschreg is in the adjustment of IRT models incorporating determining factors of the ability parameter.
 
@@ -47,7 +47,7 @@ devtools::install_github("nando11235813/raschreg")
 
 To simulate a set of items, raschreg provides the `sim_rasch()` function. The main parameters are:  
 * `n`: number of rows in the dataset.  
-* `J`: number of items (optional if you don't supply difficultiy and/or discrimination parameters).  
+* `J`: number of items (optional if you don't supply difficulty and/or discrimination parameters).  
 * `delta`: a vector containing item difficulties.  
 * `alpha`: a vector containing item discriminations.  
 * `gamma`: a vector containing pseudo-guessing parameters.  

@@ -1010,6 +1010,10 @@ wle_ab <- function(mod){
   if (is.null(alpha)) alpha <- rep(1, J) else {
     if(length(alpha) == 1) alpha <- rep(alpha, J)
   }
+  if('linpred' %in% names(mod)){
+    reg <- TRUE
+    Zb <- mod$linpred %*% cmod$est.b
+  } else reg <- FALSE
 
   X <- mod$items
   n <- nrow(X)
@@ -1023,8 +1027,10 @@ wle_ab <- function(mod){
     sum(alpha*(x - pj)) + 0.5*j/I
   }
   for (i in 1:n){
-    ab_hat[i] <- uniroot(zero, interval = c(-5, 5),
+    if (reg) zbi <- Zb[i] else zbi <- 0
+    ab_hat[i] <- uniroot(zero, interval = c(-5 + zbi, 5 + zbi),
                          x = X[i, ], alpha = alpha, dif = dif)$root
+    if (reg) ab_hat[i] <- ab_hat[i] - zbi
   }
   return(ab_hat)
 }
@@ -1197,3 +1203,15 @@ unidim <- function(mod, B = 99, trace = TRUE){
   invisible(list(statistic = stat, p.value = pval))
 }
 # Drasgow, F. and Lissak, R. (1983) Modified parallel analysis: a procedure for examining the latent dimensionality of dichotomously scored item responses. Journal of Applied Psychology, 68, 363-373.
+
+# Likelihoood Ratio based Confidenc Interval for proportions
+lr_ci_p <- function(x, n, level = 0.95){
+  # Exact likelihood ratio and score confidence intervals for the binomial proportion
+  z    <- qchisq(level, 1)
+  den  <- 2*(n + z^2)
+  A <- (2*x + z^2)/den
+  B <- z*sqrt(z^2 + 4*x*(1 - x/n))/den
+  linf <- A - B
+  lsup <- A + B
+  return(c(linf, lsup))
+}
