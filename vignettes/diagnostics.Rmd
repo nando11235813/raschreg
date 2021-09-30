@@ -1,0 +1,125 @@
+---
+title: "The raschreg package: diagnostics"
+author: Fernando Massa and Ramon Alvarez-Vaz
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+description: >
+  This vignette presents the main functions available in the package to perform diagnostic procedures over a fitted model.
+vignette: >
+   %\VignetteIndexEntry{The raschreg package: first steps}
+   %\VignetteEngine{knitr::rmarkdown}
+   \usepackage[utf8]{inputenc}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 5, fig.height= 3, fig.align = 'center')
+```
+
+## Introduction
+
+This vignette presents the main functions available in the package to perform diagnostic procedures over a fitted model.
+
+## Installation
+
+In order to install the current development version from [Github](https://github.com/nando11235813/raschreg) you will nedd to have the [devtools](https://CRAN.R-project.org/package=devtools) library.
+
+```{r, eval=FALSE}
+devtools::install_github("nando11235813/raschreg")
+```
+
+## Simulation
+
+To show the correct (and incorrect) performance of the models a simulation study is presented. At first, after simulating the data, the correct model is fitted and then the diagnostics are carried out. In this stage, the result of item and person fit are as expected.  
+Then, two different scenarios are presented with the aim of showing lack of item fit and lack of showing lack of fit in the ICC and to find ill-fitted individuals.  
+
+
+In order to simulate 100 observations of a 7 items questionnaire we make use of the `sim_rasch` function:
+```{r sim}
+library(raschreg)
+difficulties <- c(-2, -1.2, -0.4, 0.4, 1.2, 2)
+set.seed(1)
+n <- 100
+sim <- sim_rasch(n, delta = difficulties, ability = TRUE)
+items <- sim[, 1:6]
+```
+
+And the we estimate the correct model, in this case, the simple Rasch model. 
+```{r correct_model}
+mod <- rasch(items)
+```
+
+## Item and Person fit
+
+Now that we hav a correctly specified model, we can start with the diagnostics procedures. At first we can check that the ICC of every item has benn correctly estimated. For this purpose, we can have a graphical check using the `item_fit` function.
+```{r itemfit}
+itf<- vector('list',6)
+for (i in 1:6) {
+  itf[[i]] <- itemfit(mod, item = paste('item', i, sep = ''))
+}
+
+library(grid)
+library(gridExtra)
+grid.arrange(grobs = itf, ncol = 3)
+```
+
+As we can see, all items present decent fit.  
+
+The next step involves taking a look at the individuals. In this case, we can use two approaches. On the one hand, we can make a similar graphical check by means of the Cook's distance:
+```{r cd}
+cooksD(mod, trace = FALSE)
+```
+The figure shows that none of the individuals has a notorious influence on the coefficient vector.  
+Another way to check the fit of the individuals is using the function `pfs` which calculates a goodness of fit test statistic for each row of the item matrix.
+```{r pfs}
+psf <- pfs(mod)
+library(ggplot2)
+psf$index <- 1:100
+psf$fit <- factor(ifelse(psf$p.value < 0.05, 'poor', 'adecuate'))
+ggplot(psf, aes(x = index, y = statistic, color = fit)) +
+  geom_point(size=2) +
+  scale_colour_manual(values = c('black','red'))
+```
+As expected, only a small proportion of individuals present a poor level of fit.  
+
+## Checking lack of fit of an item
+Now can check wether the procedure is useful to detect ill-fited items. In this case, we add a seventh item to the previous matrix according to the next proedure.
+
+```{r bad_item}
+theta  <- sim[,'theta']
+ptheta <- ifelse(theta < -1, 0.75, ifelse(theta < 0, 0.2, 0.3))
+item7  <- rbinom(n, 1, prob = ptheta)
+items  <- cbind(items, item7)
+```
+Now thay we have an item that should not be captured by the model, we proced to estimate the model and check it's fit.
+```{r check_item}
+mod7 <- rasch(items)
+itemfit(mod7, item = 'item7')
+```
+As we can see, even when the ICC is within the confidence limits, the curvature of the ICC does not seem to be well captured by the model. 
+
+## Checking lack of fit of individuals
+In the same way that previously an item was added that should not be well captured by the model, in this section an individual with correct answers to the items of greater difficulty and incorrect to the most easy ones is added.
+```{r bad_person}
+items <- sim[, 1:6]
+items <- rbind(items, c(0, 0, 0, 1, 1, 1))
+```
+And re-fit the model to check goodness of fit and Cook's distance
+```{r check_person}
+mod101 <- rasch(items)
+cooksD(mod101, trace = FALSE)
+psf <- pfs(mod101)
+library(ggplot2)
+psf$index <- 1:(n + 1)
+psf$fit <- factor(ifelse(psf$p.value < 0.05, 'poor', 'adecuate'))
+ggplot(psf, aes(x = index, y = statistic, color = fit)) +
+  geom_point(size=2) +
+  scale_colour_manual(values = c('black','red'))
+```
+In this way, it's easy to check that the added individual present an aberrant behaviour with respect to the rest.
+
+## Issues
+If you find any trouble or suggestions please let me know by creating an issue on the [raschreg Github](https://github.com/nando11235813/raschreg).
+
