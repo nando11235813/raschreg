@@ -345,5 +345,6 @@ itemfit <- function(mod, item, ab_type = 'wle', xlim = c(-5, 5), col = 'tomato',
     geom_hline(yintercept=c(0, 1)) +
     geom_vline(xintercept=c(0)) +
     ggtitle(main) +
-    geom_line(data = dat0, col = col, size = 1)
+    geom_line(data = dat0, col = col, size = 1) -> gg
+  print(gg)
 }
